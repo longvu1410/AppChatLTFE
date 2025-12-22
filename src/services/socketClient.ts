@@ -59,6 +59,19 @@ class SocketClient {
             }
         });
     }
+
+    register(user: string, pass: string) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "REGISTER",
+                data: {
+                    user: user,
+                    pass: pass
+                }
+            }
+        });
+    }
 }
 
 export const socketClient = new SocketClient();
