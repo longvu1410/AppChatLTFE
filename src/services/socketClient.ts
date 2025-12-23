@@ -9,8 +9,12 @@ class SocketClient {
 
         this.socket = new WebSocket(SOCKET_URL);
 
+        this.socket.onopen = () => {
+        };
+
         this.socket.onmessage = (e) => {
             const data = JSON.parse(e.data);
+            console.log(data);
             this.handlers.forEach(h => h(data));
         };
 
@@ -27,6 +31,10 @@ class SocketClient {
 
     onMessage(handler: (data: any) => void) {
         this.handlers.push(handler);
+
+        return () => {
+            this.handlers = this.handlers.filter(h => h !== handler);
+        };
     }
 
     joinRoom(roomName: string) {
@@ -35,6 +43,32 @@ class SocketClient {
             data: {
                 event: "JOIN_ROOM",
                 data: { name: roomName }
+            }
+        });
+    }
+
+    login(user: string, pass: string) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "LOGIN",
+                data: {
+                    user: user,
+                    pass: pass
+                }
+            }
+        });
+    }
+
+    register(user: string, pass: string) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "REGISTER",
+                data: {
+                    user: user,
+                    pass: pass
+                }
             }
         });
     }
