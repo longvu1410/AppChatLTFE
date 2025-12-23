@@ -42,7 +42,7 @@ class SocketClient {
             action: "onchat",
             data: {
                 event: "JOIN_ROOM",
-                data: { name: roomName }
+                data: {name: roomName}
             }
         });
     }
@@ -69,6 +69,23 @@ class SocketClient {
                     user: user,
                     pass: pass
                 }
+            }
+        });
+    }
+
+    getUserList() {
+        this.send({
+            action: "onchat",
+            data: {event: "GET_USER_LIST"}
+        });
+    }
+
+    checkUserOnline(user: string) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "CHECK_USER_ONLINE",
+                data: {user}
             }
         });
     }
