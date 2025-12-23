@@ -89,6 +89,31 @@ class SocketClient {
             }
         });
     }
+    getPeopleChatMes(username: string, page: number = 1) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "GET_PEOPLE_CHAT_MES",
+                data: { name: username, page }
+            }
+        });
+    }
+
+// ✅ Gửi tin nhắn 1-1
+    sendPeopleChat(to: string, mes: string) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "SEND_CHAT",
+                data: {
+                    type: "people",
+                    to,
+                    mes
+                }
+            }
+        });
+    }
+
 }
 
 export const socketClient = new SocketClient();
