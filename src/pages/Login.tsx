@@ -1,24 +1,30 @@
 import {MessageCircle} from "lucide-react";
 import {Link, useNavigate} from 'react-router-dom';
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import { socketClient } from '../services/socketClient';
 
-const Login: React.FC = () => {
+interface LoginProps {
+    onLoginSuccess: () => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const navigate = useNavigate();
     const [user, setUser] = useState("");
     const [pass, setPass] = useState("");
     const [error, setError] = useState("");
+
+    const userRef = useRef("");
 
     useEffect(() => {
         socketClient.connect();
 
         const handleServerResponse = (data: any) => {
             if (data.event === "LOGIN_SUCCESS" || (data.event === "LOGIN" && data.status === "success")) {
-                if (data.data?.code) {
-                    localStorage.setItem("RE_LOGIN_CODE", data.data.code);
+                if (data.data?.code || data.data?.RE_LOGIN_CODE) {
+                    localStorage.setItem("RE_LOGIN_CODE", data.data.code || data.data.RE_LOGIN_CODE);
                 }
-                localStorage.setItem("USER", user);
-                navigate('/chat');
+                localStorage.setItem("USER", userRef.current);
+                onLoginSuccess();
             } else if (data.event === "LOGIN" && data.status === "error") {
                 setError(data.mes);
             }
@@ -29,11 +35,15 @@ const Login: React.FC = () => {
         return () => {
             unsubscribe();
         };
-    }, [user, navigate]);
+    }, [navigate]);
 
     const handleTyping = (setter: any, value: string) => {
         setError("");
         setter(value);
+
+        if (setter === setUser) {
+            userRef.current = value;
+        }
     };
 
     const handleLogin = (e: React.FormEvent) => {
