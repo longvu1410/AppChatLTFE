@@ -46,6 +46,31 @@ class SocketClient {
             }
         });
     }
+    sendMessage(roomName: string, message: string) {
+  this.send({
+    action: "onchat",
+    data: {
+      event: "SEND_MESSAGE",
+      data: {
+        name: roomName,
+        message: message,
+      },
+    },
+  });
+}
+getRoomHistory(roomName: string, page: number = 1) {
+    this.send({
+        action: "onchat",
+        data: {
+            event: "GET_ROOM_MESSAGES",
+            data: {
+                name: roomName,
+                page: page
+            }
+        }
+    });
+}
+
 
     login(user: string, pass: string) {
         this.send({

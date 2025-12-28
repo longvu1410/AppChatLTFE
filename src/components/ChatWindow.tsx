@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, ImagePlus, Smile, ChevronLeft } from "lucide-react";
-
-const WS_URL = "wss://chat.longapp.site/chat/chat";
-let socket: WebSocket | null = null;
+import { socketClient } from "../services/socketClient";
 
 export interface Conversation {
   id: number;
@@ -23,80 +21,42 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const [messages, setMessages] = useState<string[]>([]);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  // --- SCROLL ---
   const scrollBottom = () =>
     endRef.current?.scrollIntoView({ behavior: "smooth" });
 
-  // --- CONNECT WS ONCE ---
+  // ===== CONNECT + LISTEN SOCKET =====
   useEffect(() => {
-    if (!socket || socket.readyState === WebSocket.CLOSED) {
-      socket = new WebSocket(WS_URL);
-    }
+    socketClient.connect();
 
-    socket.onmessage = (msg) => {
-      const res = JSON.parse(msg.data);
+    const off = socketClient.onMessage((res) => {
+      const event = res?.data?.event;
 
-      // LOAD HISTORY
-      if (res?.data?.event === "GET_ROOM_CHAT_MES") {
+      // LỊCH SỬ ROOM
+      if (event === "GET_ROOM_CHAT_MES") {
         const list = res.data.data?.list || [];
         setMessages(list.map((m: any) => m.mes));
+        scrollBottom();
       }
 
-      // NEW MESSAGE
-      if (res?.data?.event === "SEND_CHAT") {
+      // TIN NHẮN MỚI TRONG ROOM
+      if (event === "SEND_CHAT") {
         setMessages((prev) => [...prev, res.data.data.mes]);
+        scrollBottom();
       }
+    });
 
-      scrollBottom();
-    };
-  }, []);
+    // JOIN ROOM + LOAD HISTORY mỗi khi đổi room
+    socketClient.joinRoom(conversation.name);
+    socketClient.getRoomHistory(conversation.name, 1);
 
- useEffect(() => {
-  if (!socket) return;
+    return off;
+  }, [conversation]);
 
-  const sendJoinAndHistory = () => {
-    // JOIN ROOM
-    socket!.send(
-      JSON.stringify({
-        action: "onchat",
-        data: { event: "JOIN_ROOM", data: { name: conversation.name } }
-      })
-    );
-
-    // GET HISTORY
-    socket!.send(
-      JSON.stringify({
-        action: "onchat",
-        data: { event: "GET_ROOM_CHAT_MES", data: { name: conversation.name, page: 1 } }
-      })
-    );
-  };
-
-  if (socket.readyState === WebSocket.OPEN) {
-    sendJoinAndHistory();
-  } else {
-    socket.onopen = () => {
-      console.log("WS OPEN → join + load history");
-      sendJoinAndHistory();
-    };
-  }
-}, [conversation]);
-
-
-  // --- SEND MESSAGE ---
+  // ===== SEND MESSAGE =====
   const handleSend = () => {
-    if (!message.trim() || !socket) return;
+    if (!message.trim()) return;
 
-    socket.send(
-      JSON.stringify({
-        action: "onchat",
-        data: {
-          event: "SEND_CHAT",
-          data: { name: conversation.name, mes: message }
-        }
-      })
-    );
-
+    socketClient.sendMessage(conversation.name, message);
     setMessage("");
   };
 
@@ -133,7 +93,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
         </div>
       </div>
 
-      {/* MESSAGE LIST */}
+      {/* MESSAGES */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, idx) => (
           <div
