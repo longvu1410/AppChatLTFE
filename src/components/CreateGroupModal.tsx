@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X, Users, Check } from "lucide-react";
+import { createRoom } from "../services/roomService";   //  KẾT NỐI API
 
 interface User {
   id: number;
@@ -9,10 +10,10 @@ interface User {
 
 interface CreateGroupModalProps {
   onClose: () => void;
-  onCreateGroup: (group: { name: string; members: number[] }) => void;
+  onCreateGroup?: (group: { name: string; members: number[] }) => void;
 }
 
-// Dữ liệu giả
+// Fake data — có thể thay bằng API
 const mockUsers: User[] = [
   { id: 1, name: "Trần Thị B", avatar: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" },
   { id: 2, name: "Lê Văn C", avatar: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" },
@@ -22,6 +23,7 @@ const mockUsers: User[] = [
 export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onCreateGroup }) => {
   const [groupName, setGroupName] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const toggleUser = (userId: number) => {
     setSelectedUsers(prev =>
@@ -30,8 +32,25 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onC
   };
 
   const handleCreateGroup = () => {
-    if (!groupName || selectedUsers.length === 0) return;
-    onCreateGroup({ name: groupName, members: selectedUsers });
+    if (!groupName.trim()) return;
+
+    setLoading(true);
+
+    //  Gửi CREATE_ROOM qua WebSocket
+    createRoom(groupName);
+
+    // callback cho parent nếu cần
+    onCreateGroup?.({
+      name: groupName,
+      members: selectedUsers,
+    });
+
+    // reset UI
+    setTimeout(() => {
+      setLoading(false);
+      setGroupName("");
+      onClose();
+    }, 300);
   };
 
   return (
@@ -63,9 +82,11 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onC
           </div>
 
           <label className="label font-bold text-gray-700 mb-2">Thành viên</label>
+
           <div className="space-y-2">
             {mockUsers.map(user => {
               const isSelected = selectedUsers.includes(user.id);
+
               return (
                 <div
                   key={user.id}
@@ -79,7 +100,9 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onC
                       <img src={user.avatar} alt={user.name} />
                     </div>
                   </div>
+
                   <div className="flex-1 font-medium">{user.name}</div>
+
                   {isSelected ? (
                     <div className="w-6 h-6 rounded-full bg-lime-500 flex items-center justify-center">
                       <Check size={14} className="text-white" />
@@ -96,12 +119,13 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({ onClose, onC
         {/* Footer */}
         <div className="p-4 border-t border-gray-100 flex justify-end gap-2">
           <button className="btn btn-ghost" onClick={onClose}>Hủy</button>
+
           <button
             className="btn bg-lime-500 text-white hover:bg-lime-600"
-            disabled={!groupName || selectedUsers.length === 0}
+            disabled={!groupName.trim() || loading}
             onClick={handleCreateGroup}
           >
-            Tạo nhóm
+            {loading ? "Đang tạo..." : "Tạo nhóm"}
           </button>
         </div>
       </div>
