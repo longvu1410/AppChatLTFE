@@ -62,7 +62,7 @@ getRoomHistory(roomName: string, page: number = 1) {
     this.send({
         action: "onchat",
         data: {
-            event: "GET_ROOM_MESSAGES",
+            event: "GET_ROOM_CHAT_MES",
             data: {
                 name: roomName,
                 page: page
