@@ -4,46 +4,102 @@ import {ChatWindow} from "../components/ChatWindow";
 import {CreateGroupModal} from "../components/CreateGroupModal";
 import {useNavigate} from "react-router-dom";
 import {WelcomeScreen} from "../components/WelcomeScreen";
+import { socketClient } from "../services/socketClient";
 
 interface Conversation {
-    id: number;
+    id: string;
     name: string;
-    msg?: string;
-    time?: string;
-    isGroup: boolean;
     avatar?: string;
-    members?: number[];
+    type: "1"|"0";
+    lastMessage?: string;
+    lastTime: number;
+    unread: number;
 }
 
-const ChatPage = () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentConversationId, setCurrentConversationId] = useState<number | null>(null);
+const ChatPage: React.FC = () => {
+
+    const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const navigate = useNavigate();
-    const [currentUser, setCurrentUser] = useState("User");
+    const [filterType,setFilterType] = useState<"all"|"1">("all");
+    const [currentUser, setCurrentUser] = useState("");
 
     useEffect(() => {
-        const savedUser = localStorage.getItem("USER");
-        if (savedUser) {
-            setCurrentUser(savedUser);
+        const user = localStorage.getItem("USER");
+        if (!user) {
+            navigate("/login");
+            return;
         }
-    }, []);
+        setCurrentUser(user);
+        const off = socketClient.onMessage((res) => {
+            const { event, data } = res;
+
+            // ===== USER LIST =====
+            if (event === "GET_USER_LIST") {
+                const list: Conversation[] = data .map((u: any) => ({
+                    id: u.name,
+                    type: u.type === 0 ? "0" :"1",
+                    name: u.name,
+                    lastMessage: "",
+                    lastTime:new Date(u.actionTime).getTime(),
+                    unread: 0
+                }));
+                setConversations(list);
+            }
+
+            // ===== PRIVATE MESSAGE =====
+            if (event === "SEND_CHAT") {
+                const { from, mes } = data;
+
+                setConversations(prev =>
+                    prev.map(c =>
+                        c.id === from
+                            ? {
+                                ...c,
+                                lastMessage: mes,
+                                lastTime: Date.now(),
+                                unread: currentConversationId === from ? 0 : c.unread + 1
+                            }
+                            : c
+                    )
+                );
+            }
+        });
+
+        socketClient.getUserList();
+        return off;
+
+    }, [currentConversationId]);
+
+    const handleSelectConversation = (id: string) => {
+        setCurrentConversationId(id);
+        setConversations(prev =>
+            prev.map(c => (c.id === id ? { ...c, unread: 0 } : c))
+        );
+    };
 
     const handleLogout = () => {
-        console.log("Đăng xuất");
+        localStorage.removeItem("USER");
         navigate("/login");
     };
+
+    const fileredConversations = conversations.filter(c => {
+        if(filterType === "all") return true;
+        return c.type === filterType;
+    });
 
     return (
         <div className="flex h-screen overflow-hidden relative font-sans text-gray-800">
             <div className={`${currentConversationId ? "hidden" : "flex"} md:flex w-full md:w-80 h-full`}>
                 <Sidebar
-                    onOpenCreateGroup={() => setIsModalOpen(true)}
-                    selectedId={currentConversationId || 0}
-                    onSelectConversation={(id) => setCurrentConversationId(id)}
+                    conversations={fileredConversations}
+                    selectedId={currentConversationId}
+                    onSelectConversation={handleSelectConversation}
                     onLogout={handleLogout}
-                    conversations={conversations}
                     currentUser={currentUser}
+                    onOpenCreateGroup={() => {}}
+                    filterType={filterType}
+                    setFilterType={setFilterType}
                 />
             </div>
 
@@ -51,6 +107,7 @@ const ChatPage = () => {
                 {currentConversationId ? (
                     <ChatWindow
                         conversation={conversations.find(c => c.id === currentConversationId)!}
+                        currentUser={currentUser}
                         onBack={() => setCurrentConversationId(null)}
                     />
 
@@ -59,25 +116,7 @@ const ChatPage = () => {
                 )}
             </div>
 
-            {isModalOpen && (
-                <CreateGroupModal
-                    onClose={() => setIsModalOpen(false)}
-                    onCreateGroup={(group) => {
-                        const newGroup: Conversation = {
-                            id: Date.now(),
-                            name: group.name,
-                            members: group.members,
-                            isGroup: true,
-                            msg: "Đang nhắn...",
-                            time: "Vừa xong",
-                            avatar: "https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                        };
-                        setConversations(prev => [...prev, newGroup]);
-                        setCurrentConversationId(newGroup.id);
-                        setIsModalOpen(false);
-                    }}
-                />
-            )}
+
         </div>
     );
 };
