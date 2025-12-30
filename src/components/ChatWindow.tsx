@@ -1,45 +1,72 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, ImagePlus, Smile, ChevronLeft } from 'lucide-react';
+import { Send, ChevronLeft } from "lucide-react";
+import { socketClient } from "../services/socketClient";
+import { Conversation } from "../pages/Chat";
 
-export interface Conversation {
-  id: number;
-  name: string;
-  avatar?: string;
-  messages?: string[];
+interface Message {
+    from: string;
+    mes: string;
+    time?:string;
+
 }
 
-interface ChatWindowProps {
-  conversation: Conversation;
-  onBack: () => void;
+interface Props {
+    conversation: Conversation;
+    currentUser: string;
+    onBack: () => void;
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ conversation, onBack }) => {
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<string[]>(conversation.messages || []);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+export const ChatWindow: React.FC<Props> = ({
+                                                conversation,currentUser, onBack
+}) => {
+  const [message, setMessage] = useState<Message[]>([]);
+    const [text, setText] = useState("");
+    const endRef = useRef<HTMLDivElement>(null);
 
-  // Scroll xuống dưới mỗi khi messages thay đổi
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, conversation]);
+    useEffect(() => {
+        const off = socketClient.onMessage((res) => {
+            const { event, data } = res;
 
-  // Khi đổi conversation, load lại messages
-  useEffect(() => {
-    setMessages(conversation.messages || []);
-  }, [conversation]);
+            if (event === "SEND_CHAT") {
+                setMessages(prev => [...prev, data]);
 
-  const handleSend = () => {
-    if (!message.trim()) return;
-    const newMessages = [...messages, message];
-    setMessages(newMessages);
-    setMessage("");
-    // Nếu muốn cập nhật vào conversation parent, cần callback từ ChatPage
-    conversation.messages = newMessages;
-  };
+            }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSend();
-  };
+            if(event==="GET_PEOPLE_CHAT_MES"){
+                const list: Message[] = Array.isArray(data)
+                    ? data.map((m:any) => ({
+                        from: m.from || m.name,
+                        mes:m.mes || m.message || "",
+
+
+                    }))
+                    :[];
+
+                setMessages(list);
+
+            }
+        });
+        socketClient.getPeopleChatMes(conversation.id);
+
+        return off;
+    }, [conversation]);
+
+
+
+    const sendMessage = () => {
+        if (!text.trim()) return;
+        socketClient.sendChat(conversation.id, text);
+
+
+
+        setMessages(prev => [
+            ...prev,
+            {from:currentUser, mes:text ,time:new Date().toISOString()}
+        ]);
+        setText("");
+
+    };
+
 
   return (
     <div className="flex-1 flex flex-col bg-[#F8FAF5] h-full relative">
