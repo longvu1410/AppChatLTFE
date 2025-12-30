@@ -80,59 +80,70 @@ export const ChatWindow: React.FC<Props> = ({
 
 
     return (
-    <div className="flex-1 flex flex-col bg-[#F8FAF5] h-full relative">
-      {/* HEADER */}
-      <div className="bg-base-100/80 backdrop-blur-md p-3 md:p-4 flex items-center gap-2 border-b border-gray-100 sticky top-0 z-10">
-        <button onClick={onBack} className="md:hidden btn btn-ghost btn-circle btn-sm -ml-2 text-gray-600">
-          <ChevronLeft size={24} />
-        </button>
-
-        <div className="avatar online">
-          <div className="w-9 md:w-10 rounded-full border border-lime-200">
-            <img src={conversation.avatar} alt={conversation.name}/>
-          </div>
-        </div>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-bold text-base-content text-sm md:text-base truncate">{conversation.name}</h2>
-          <span className="text-lime-600 text-xs font-bold block">● Đang hoạt động</span>
-        </div>
-      </div>
-
-      {/* Nội dung tin nhắn */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`chat ${idx % 2 === 0 ? "chat-start" : "chat-end"}`}>
-            <div className={`chat-bubble ${idx % 2 === 0 ? "bg-base-100 text-gray-700" : "bg-lime-500 text-white"} shadow-sm border border-gray-100`}>
-              {msg}
+        <div className="flex-1 flex flex-col bg-[#F8FAF5] h-full relative">
+            <div className="bg-base-100/10 backdrop-blur-md p-3 md:p-4 flex items-center gap-2 border-b border-gray-100 sticky top-0 z-10">
+                <button className="md:hidden btn btn-ghost btn-circle btn-sm -ml-2 text-gray-600" onClick={onBack}>
+                    <ChevronLeft size={24} />
+                </button>
+                <div className="avatar online">
+                    <div className="w-9 md:w-10 rounded-full border border-lime-200"></div>
+                </div>
+                <div className="flex-1 min-w-0">
+                    <h2 className="font-bold text-base-content text-sm md:text-base truncate">{conversation.name}</h2>
+                    <span className="text-lime-600 text-xs font-bold block">Đang hoạt động</span>
+                </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef}></div>
-      </div>
 
-      {/* Input Area */}
-      <div className="p-4">
-        <div className="bg-base-100 p-2 rounded-3xl shadow-lg border border-gray-100 flex items-center gap-2 px-4 transition-all focus-within:ring-2 focus-within:ring-lime-100 focus-within:border-lime-300">
-          <button className="btn btn-circle btn-ghost btn-sm text-gray-400 hover:text-lime-600"><ImagePlus size={20} /></button>
-          <button className="btn btn-circle btn-ghost btn-sm text-gray-400 hover:text-lime-600"><Smile size={20} /></button>
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.map((m, i) => {
+                    const isMe = m.from === currentUser;
+                    const currentDate = getDateLabel(m.time!);
+                    const prevDate =
+                        i > 0 ? getDateLabel(messages[i-1].time!): null;
+                    const showDateDiver = i === 0 || currentDate !== prevDate;
+                    return (
+                        <React.Fragment key={m.id}>
+                            {showDateDiver && (
+                                <div className="flex justify-center my-2">
+                  <span className="text-[11px] text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                    {currentDate}
+                  </span>
+                                </div>
+                            )}
+                            <div key={i} className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
+                                <div
+                                    className={`chat-bubble ${
+                                        isMe ? "bg-base-100 text-gray-700" :"bg-lime-500 text-white"
+                                    } shadow-sm border border-gray-100`}
+                                >
+                                    {m.mes}
+                                    {m.time && (
+                                        <div className="text-[10px] text-gray-400 mt-1 text-right">
+                                            {new Date(m.time).toLocaleTimeString([],{hour: "2-digit",minute:"2-digit"})}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-          <input
-            type="text"
-            placeholder="Nhập tin nhắn..."
-            className="input input-ghost w-full focus:bg-transparent border-none focus:outline-none text-gray-700"
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
+                        </React.Fragment>
 
-          <button
-            onClick={handleSend}
-            className={`btn btn-circle btn-sm border-none shadow-md transition-all ${message.trim() ? 'bg-lime-500 hover:bg-lime-600 text-white' : 'bg-gray-200 text-gray-400'}`}
-          >
-            <Send size={18} />
-          </button>
+                    );
+                })}
+                <div ref={endRef} />
+            </div>
+
+            <div className="p-3 border-t flex gap-2">
+                <input
+                    className="input input-ghost w-full focus:bg-transparent border-none focus:outline-none text-gray-700"
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && sendMessage()}
+                    placeholder="Nhập tin nhắn..."
+                />
+                <button onClick={sendMessage} className="btn btn-cricle btn-sm border-none shadow-md transition-all">
+                    <Send size={18} />
+                </button>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
