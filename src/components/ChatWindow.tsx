@@ -7,7 +7,7 @@ interface Message {
     from: string;
     mes: string;
     time?:string;
-
+    id:number| string;
 }
 
 interface Props {
@@ -37,11 +37,11 @@ export const ChatWindow: React.FC<Props> = ({
                     ? data.map((m:any) => ({
                         from: m.from || m.name,
                         mes:m.mes || m.message || "",
-
-
+                        time: m.createAt,
+                        id: m.id
                     }))
                     :[];
-
+                list.sort((a,b) => Number(a.id)-Number(b.id));
                 setMessages(list);
 
             }
@@ -51,24 +51,35 @@ export const ChatWindow: React.FC<Props> = ({
         return off;
     }, [conversation]);
 
+    useEffect(() => {
+        endRef.current?.scrollIntoView({behavior: "smooth"});
 
+    },[messages]);
 
     const sendMessage = () => {
         if (!text.trim()) return;
         socketClient.sendChat(conversation.id, text);
 
-
+        const tempId =`temp-${Date.now()}`;
 
         setMessages(prev => [
             ...prev,
-            {from:currentUser, mes:text ,time:new Date().toISOString()}
+            {from:currentUser, mes:text ,time:new Date().toISOString(),id:tempId }
         ]);
         setText("");
 
     };
+    const getDateLabel = (time:string) => {
+        const d = new Date(time);
+        return d.toLocaleDateString("vi-VN" ,{
+            day:"2-digit",
+            month: "2-digit",
+            year: "numeric"
+        });
+    };
 
 
-  return (
+    return (
     <div className="flex-1 flex flex-col bg-[#F8FAF5] h-full relative">
       {/* HEADER */}
       <div className="bg-base-100/80 backdrop-blur-md p-3 md:p-4 flex items-center gap-2 border-b border-gray-100 sticky top-0 z-10">
