@@ -140,6 +140,65 @@ class SocketClient {
             }
         });
     }
+
+    getUserList(){
+        this.send({
+            action: "onchat",
+            data:{
+                event:"GET_USER_LIST"
+            }
+        });
+
+    }
+    checkUserOnline(user:string){
+        this.send({
+            action:"onchat",
+            data:{
+                event:"CHECK_USER_ONLINE",
+                data:{
+                    user
+
+                }
+            }
+        });
+    }
+    checkUserExist(user:string){
+        this.send({
+            action:"onchat",
+            data:{
+                event:"CHECK_USER_EXIST",
+                data:{user}
+            }
+        });
+    }
+
+
+    getPeopleChatMes(username:string,page :number =0){
+        this.send({
+            action:"onchat",
+            data:{
+                event:"GET_PEOPLE_CHAT_MES",
+                data:{
+                    name:username,
+                    page
+                }
+            }
+        });
+    }
+    sendChat(to:string,mes:string){
+        this.send({
+            action:"onchat",
+            data:{
+                event:"SEND_CHAT",
+                data:{
+                    type:"people",
+                    to,mes
+                }
+            }
+        });
+    }
+
+
 }
 
 export const socketClient = new SocketClient();
