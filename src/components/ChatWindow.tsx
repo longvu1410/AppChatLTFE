@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 import { Send, ChevronLeft } from "lucide-react";
 import { socketClient } from "../services/socketClient";
 import { Conversation } from "../pages/Chat";
+
 
 interface Message {
     from: string;
@@ -17,18 +18,25 @@ interface Props {
 }
 
 export const ChatWindow: React.FC<Props> = ({
-                                                conversation,currentUser, onBack
-}) => {
-  const [message, setMessage] = useState<Message[]>([]);
+                                                conversation,
+                                                currentUser,
+                                                onBack
+                                            }) => {
+    const [messages, setMessages] = useState<Message[]>([]);
     const [text, setText] = useState("");
     const endRef = useRef<HTMLDivElement>(null);
+
+
+
 
     useEffect(() => {
         const off = socketClient.onMessage((res) => {
             const { event, data } = res;
 
             if (event === "SEND_CHAT") {
-                setMessages(prev => [...prev, data]);
+                if(data.from === conversation.id || data.to === conversation.id){
+                    setMessages(prev => [...prev, data]);
+                }
 
             }
 
@@ -49,7 +57,7 @@ export const ChatWindow: React.FC<Props> = ({
         socketClient.getPeopleChatMes(conversation.id);
 
         return off;
-    }, [conversation]);
+    }, [conversation.id]);
 
     useEffect(() => {
         endRef.current?.scrollIntoView({behavior: "smooth"});
@@ -110,7 +118,7 @@ export const ChatWindow: React.FC<Props> = ({
                   </span>
                                 </div>
                             )}
-                            <div key={i} className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
+                            <div  className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
                                 <div
                                     className={`chat-bubble ${
                                         isMe ? "bg-base-100 text-gray-700" :"bg-lime-500 text-white"

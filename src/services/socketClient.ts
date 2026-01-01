@@ -10,6 +10,7 @@ class SocketClient {
         this.socket = new WebSocket(SOCKET_URL);
 
         this.socket.onopen = () => {
+            console.log("socket connect");
         };
 
         this.socket.onmessage = (e) => {
@@ -42,10 +43,35 @@ class SocketClient {
             action: "onchat",
             data: {
                 event: "JOIN_ROOM",
-                data: {name: roomName}
+                data: { name: roomName }
             }
         });
     }
+    sendMessage(roomName: string, message: string) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "SEND_MESSAGE",
+                data: {
+                    name: roomName,
+                    message: message,
+                },
+            },
+        });
+    }
+    getRoomHistory(roomName: string, page: number = 1) {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "GET_ROOM_MESSAGES",
+                data: {
+                    name: roomName,
+                    page: page
+                }
+            }
+        });
+    }
+
 
     login(user: string, pass: string) {
         this.send({
@@ -73,42 +99,59 @@ class SocketClient {
         });
     }
 
-    getUserList() {
-        this.send({
-            action: "onchat",
-            data: {event: "GET_USER_LIST"}
-        });
-    }
 
-    checkUserOnline(user: string) {
+    getUserList(){
         this.send({
             action: "onchat",
-            data: {
-                event: "CHECK_USER_ONLINE",
-                data: {user}
+            data:{
+                event:"GET_USER_LIST"
+            }
+        });
+
+    }
+    checkUserOnline(user:string){
+        this.send({
+            action:"onchat",
+            data:{
+                event:"CHECK_USER_ONLINE",
+                data:{
+                    user
+
+                }
             }
         });
     }
-    getPeopleChatMes(username: string, page: number = 1) {
+    checkUserExist(user:string){
         this.send({
-            action: "onchat",
-            data: {
-                event: "GET_PEOPLE_CHAT_MES",
-                data: { name: username, page }
+            action:"onchat",
+            data:{
+                event:"CHECK_USER_EXIST",
+                data:{user}
             }
         });
     }
 
-// ✅ Gửi tin nhắn 1-1
-    sendPeopleChat(to: string, mes: string) {
+
+    getPeopleChatMes(username:string,page :number =0){
         this.send({
-            action: "onchat",
-            data: {
-                event: "SEND_CHAT",
-                data: {
-                    type: "people",
-                    to,
-                    mes
+            action:"onchat",
+            data:{
+                event:"GET_PEOPLE_CHAT_MES",
+                data:{
+                    name:username,
+                    page
+                }
+            }
+        });
+    }
+    sendChat(to:string,mes:string){
+        this.send({
+            action:"onchat",
+            data:{
+                event:"SEND_CHAT",
+                data:{
+                    type:"people",
+                    to,mes
                 }
             }
         });
