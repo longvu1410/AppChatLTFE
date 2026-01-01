@@ -15,12 +15,14 @@ interface Props {
     conversation: Conversation;
     currentUser: string;
     onBack: () => void;
+    isOnline: boolean;
 }
 
 export const ChatWindow: React.FC<Props> = ({
                                                 conversation,
                                                 currentUser,
-                                                onBack
+                                                onBack,
+                                                isOnline
                                             }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [text, setText] = useState("");
@@ -98,7 +100,14 @@ export const ChatWindow: React.FC<Props> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                     <h2 className="font-bold text-base-content text-sm md:text-base truncate">{conversation.name}</h2>
-                    <span className="text-lime-600 text-xs font-bold block">Đang hoạt động</span>
+                    <span
+                        className={`text-xs font-bold block ${
+                            isOnline ? "text-lime-600" : "text-gray-400"
+                        }`}
+                    >
+            {isOnline ? "Online" : "Offline"}
+          </span>
+
                 </div>
             </div>
 

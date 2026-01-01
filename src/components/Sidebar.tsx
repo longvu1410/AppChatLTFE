@@ -124,16 +124,32 @@ export const Sidebar: React.FC<Props> = ({
                             selectedId === c.id ? "bg-lime-50 border border-lime-200 shadow-sm" : "hover:bg-gray-50 border border-transparent"
                         }`}
                     >
-                        <div className="avatar placeholder">
-                            <div className="bg-lime-500 text-white rounded-full w-8">
-              <span className="text-xl font-bold">
-                {c.name.charAt(0).toUpperCase()?? "?"}
-              </span>
-                            </div>
-                        </div>
-                        <span className={`absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white
+                        <div className="relative flex items-center gap-2">
+                            <div className="avatar placeholder relative">
+                                <div className="bg-lime-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+      <span className="text-sm font-bold">
+        {c.name.charAt(0)?.toUpperCase() ?? "?"}
+      </span>
+                                </div>
+
+                                {/* DOT ONLINE */}
+                                <span
+                                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white
       ${onlineMap[c.id] ? "bg-green-500" : "bg-gray-400"}`}
-                        />
+                                />
+                            </div>
+
+                            {/* TEXT ONLINE */}
+                            <span
+                                className={`text-[11px] font-semibold ${
+                                    onlineMap[c.id] ? "text-green-600" : "text-gray-400"
+                                }`}
+                            >
+    {onlineMap[c.id] ? "Online" : "Offline"}
+  </span>
+                        </div>
+
+
 
                         <div className="flex-1 min-w-0">
                             <div className="font-bold">{c.name}</div>

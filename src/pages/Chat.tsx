@@ -86,33 +86,33 @@ const ChatPage: React.FC = () => {
                 );
             }
             if(event === "CHECK_USER_ONLINE"){
-                const username =  pendingSearchUserRef.current;
+                const username =  pendingSearchUserRef.current ?? data.username;
                 if(!username) return;
 
                 setOnlineMap(prev => ({
                     ...prev,[username] :data.status
                 }));
+                if(pendingSearchUserRef.current){
+                    setConversations(prev => {
+                        const exists = prev.some(c => c.id === username);
+                        if (exists) return prev;
+                        return [
+                            {
+                                id: username,
+                                name : username,
+                                type: "0",
+                                lastMessage:"",
+                                lastTime: Date.now(),
+                                unread: 0,
+                                avatar:undefined
+                            },
+                            ...prev
+                        ];
+                    });
 
-                setConversations(prev => {
-                    const exists = prev.some(c => c.id === username);
-                    if (exists) return prev;
-                    return [
-                        {
-                            id: username,
-                            name : username,
-                            type: "0",
-                            lastMessage:"",
-                            lastTime: Date.now(),
-                            unread: 0,
-                            avatar:undefined
-                        },
-                        ...prev
-                    ];
-                });
-
-                setCurrentConversationId(username);
-                setPendingSearchUser(null);
-                pendingSearchUserRef.current = null;
+                    setCurrentConversationId(username);
+                    pendingSearchUserRef.current = null;
+                }
             }
 
             if(event === "CHECK_USER_EXIST"){
@@ -200,6 +200,7 @@ const ChatPage: React.FC = () => {
                     <ChatWindow
                         conversation={currentConversation}
                         currentUser={currentUser}
+                        isOnline= {onlineMap[currentConversation.id] ?? false}
                         onBack={() => setCurrentConversationId(null)}
 
                     />
