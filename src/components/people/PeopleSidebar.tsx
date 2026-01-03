@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { socketClient } from "../../services/socketClient";
+import { SocketClient } from "../../services/socketClient";
 
 interface Props {
     currentUser: string;
@@ -42,14 +42,14 @@ const PeopleSidebar: React.FC<Props> = ({ currentUser, onSelectUser }) => {
 
     // 1️⃣ lấy user list
     useEffect(() => {
-        socketClient.getUserList?.();
+        SocketClient.getInstance().getUserList?.();
         // nếu bạn chưa add helper getUserList thì dùng send raw:
-        // socketClient.send({ action: "onchat", data: { event: "GET_USER_LIST" } });
+        // SocketClient.getInstance().send({ action: "onchat", data: { event: "GET_USER_LIST" } });
     }, []);
 
     // 2️⃣ nhận message từ server
     useEffect(() => {
-        const unsub = socketClient.onMessage((msg: any) => {
+        const unsub = SocketClient.getInstance().subscribe((msg: any) => {
             // GET_USER_LIST
             if (msg?.event === "GET_USER_LIST" && msg?.status === "success") {
                 const raw = Array.isArray(msg.data) ? msg.data : [];
@@ -61,9 +61,9 @@ const PeopleSidebar: React.FC<Props> = ({ currentUser, onSelectUser }) => {
 
                 // check online từng user
                 list.forEach((u: string) => {
-                    if (socketClient.checkUserOnline) socketClient.checkUserOnline(u);
+                    if (SocketClient.getInstance().checkUserOnline) SocketClient.getInstance().checkUserOnline(u);
                     else {
-                        socketClient.send({
+                        SocketClient.getInstance().send({
                             action: "onchat",
                             data: { event: "CHECK_USER_ONLINE", data: { user: u } }
                         });

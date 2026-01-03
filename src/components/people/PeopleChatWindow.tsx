@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Send, ChevronLeft } from "lucide-react";
-import { socketClient } from "../../services/socketClient";
+import { SocketClient } from "../../services/socketClient";
 
 interface Message {
     from: string;
@@ -26,7 +26,7 @@ const PeopleChatWindow: React.FC<Props> = ({ currentUser, targetUser, onBack }) 
     useEffect(() => {
         setMessages([]);
 
-        socketClient.send({
+        SocketClient.getInstance().send({
             action: "onchat",
             data: {
                 event: "GET_PEOPLE_CHAT_MES",
@@ -37,7 +37,7 @@ const PeopleChatWindow: React.FC<Props> = ({ currentUser, targetUser, onBack }) 
 
     // Listen socket
     useEffect(() => {
-        const unsub = socketClient.onMessage((data: any) => {
+        const unsub = SocketClient.getInstance().subscribe((data: any) => {
             // history
             if (data.event === "GET_PEOPLE_CHAT_MES" && Array.isArray(data.data)) {
                 setMessages(data.data.reverse());
@@ -60,7 +60,7 @@ const PeopleChatWindow: React.FC<Props> = ({ currentUser, targetUser, onBack }) 
     const sendMessage = () => {
         if (!input.trim()) return;
 
-        socketClient.send({
+        SocketClient.getInstance().send({
             action: "onchat",
             data: {
                 event: "SEND_CHAT",

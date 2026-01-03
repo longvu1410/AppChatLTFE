@@ -1,7 +1,7 @@
 import {MessageCircle} from "lucide-react";
 import {Link, useNavigate} from 'react-router-dom';
 import React, {useState, useEffect, useRef} from 'react';
-import { socketClient } from '../services/socketClient';
+import { SocketClient } from '../services/socketClient';
 
 interface LoginProps {
     onLoginSuccess: () => void;
@@ -16,7 +16,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const userRef = useRef("");
 
     useEffect(() => {
-        socketClient.connect();
+        // socketClient.connect();
 
         const handleServerResponse = (data: any) => {
             if (data.event === "LOGIN_SUCCESS" || (data.event === "LOGIN" && data.status === "success")) {
@@ -30,7 +30,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
             }
         };
 
-        const unsubscribe = socketClient.onMessage(handleServerResponse);
+        const unsubscribe = SocketClient.getInstance().subscribe(handleServerResponse);
 
         return () => {
             unsubscribe();
@@ -48,7 +48,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        socketClient.login(user, pass);
+        SocketClient.getInstance().login(user, pass);
     };
 
     return (
