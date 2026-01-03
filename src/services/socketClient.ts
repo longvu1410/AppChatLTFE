@@ -1,22 +1,37 @@
 import {SOCKET_URL} from "../api/socketConfig";
 
-class SocketClient {
+export class SocketClient {
+    private static instance: SocketClient | null = null;
     private socket: WebSocket | null = null;
     private handlers: ((data: any) => void)[] = [];
 
+    private constructor() {}
+
+    public static getInstance(): SocketClient {
+        if (!SocketClient.instance) {
+            console.log("Getting SocketService instance");
+            SocketClient.instance = new SocketClient();
+            SocketClient.instance.connect();
+        }
+        return SocketClient.instance;
+    }
+
     connect() {
         if (this.socket) return;
-        console.log("Đang kết nối Socket...");
         this.socket = new WebSocket(SOCKET_URL);
 
         this.socket.onopen = () => {
-            console.log("Socket đã kết nối!");
+            console.log("WebSocket connected!");
         };
 
         this.socket.onmessage = (e) => {
             const data = JSON.parse(e.data);
             console.log(data);
             this.handlers.forEach(h => h(data));
+        };
+
+        this.socket.onerror = (error) => {
+            console.error("Lỗi Socket:", error);
         };
 
         this.socket.onclose = () => {
@@ -30,7 +45,7 @@ class SocketClient {
         }
     }
 
-    onMessage(handler: (data: any) => void) {
+    subscribe(handler: (data: any) => void) {
         this.handlers.push(handler);
 
         return () => {
@@ -48,7 +63,7 @@ class SocketClient {
             }
         };
 
-        const unsubscribe = this.onMessage(handleMsg);
+        const unsubscribe = this.subscribe(handleMsg);
 
         const attemptLogin = () => {
             if (this.socket?.readyState === WebSocket.OPEN) {
@@ -200,5 +215,3 @@ class SocketClient {
 
 
 }
-
-export const socketClient = new SocketClient();

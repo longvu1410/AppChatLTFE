@@ -3,7 +3,7 @@ import { Sidebar } from "../components/Sidebar";
 import { ChatWindow } from "../components/ChatWindow";
 import { useNavigate } from "react-router-dom";
 import { WelcomeScreen } from "../components/WelcomeScreen";
-import { socketClient } from "../services/socketClient";
+import { SocketClient } from "../services/socketClient";
 
 export interface Conversation {
     id: string;
@@ -64,7 +64,7 @@ const ChatPage: React.FC = () => {
                 });
 
                 list.forEach(c => {
-                    socketClient.checkUserOnline(c.id);
+                    SocketClient.getInstance().checkUserOnline(c.id);
                 });
             }
 
@@ -126,14 +126,14 @@ const ChatPage: React.FC = () => {
                     return;
                 }
 
-                socketClient.checkUserOnline(username);
+                SocketClient.getInstance().checkUserOnline(username);
             }
         }
 
         setCurrentUser(user);
 
-        const off = socketClient.onMessage(handleSocketMessage);
-        socketClient.getUserList();
+        const off = SocketClient.getInstance().subscribe(handleSocketMessage);
+        SocketClient.getInstance().getUserList();
         return off;
     }, [navigate]);
 
@@ -148,12 +148,12 @@ const ChatPage: React.FC = () => {
         if(!username) return;
         setPendingSearchUser(username);
         pendingSearchUserRef.current= username;
-        socketClient.checkUserExist(username);
+        SocketClient.getInstance().checkUserExist(username);
     };
 
     const handleSelectConversation = (id: string) => {
         setCurrentConversationId(id);
-        socketClient.checkUserOnline(id);
+        SocketClient.getInstance().checkUserOnline(id);
         setConversations(prev =>
             prev.map(c => (c.id === id ? { ...c, unread: 0 } : c))
         );

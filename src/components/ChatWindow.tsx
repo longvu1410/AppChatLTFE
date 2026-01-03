@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Send, ChevronLeft } from "lucide-react";
-import { socketClient } from "../services/socketClient";
+import { SocketClient } from "../services/socketClient";
 import { Conversation } from "../pages/Chat";
 
 
@@ -32,7 +32,7 @@ export const ChatWindow: React.FC<Props> = ({
 
 
     useEffect(() => {
-        const off = socketClient.onMessage((res) => {
+        const off = SocketClient.getInstance().subscribe((res) => {
             const { event, data } = res;
 
             if (event === "SEND_CHAT") {
@@ -56,7 +56,7 @@ export const ChatWindow: React.FC<Props> = ({
 
             }
         });
-        socketClient.getPeopleChatMes(conversation.id);
+        SocketClient.getInstance().getPeopleChatMes(conversation.id);
 
         return off;
     }, [conversation.id]);
@@ -68,7 +68,7 @@ export const ChatWindow: React.FC<Props> = ({
 
     const sendMessage = () => {
         if (!text.trim()) return;
-        socketClient.sendChat(conversation.id, text);
+        SocketClient.getInstance().sendChat(conversation.id, text);
 
         const tempId =`temp-${Date.now()}`;
 

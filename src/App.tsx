@@ -4,7 +4,7 @@ import {Route, BrowserRouter, Routes, Navigate} from "react-router-dom";
 import Login from './pages/Login';
 import Register from "./pages/Register";
 import ChatPage from './pages/Chat';
-import {socketClient} from "./services/socketClient";
+import {SocketClient} from "./services/socketClient";
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,16 +16,22 @@ function App() {
             const user = localStorage.getItem("USER");
             const code = localStorage.getItem("RE_LOGIN_CODE");
 
+            if (user) {
+                console.log("Loaded user:", user);
+            } else {
+                console.log("Loaded user: null");
+            }
+
+            const socket = SocketClient.getInstance();
+
             if (!user || !code) {
-                console.log("Không tìm thấy thông tin đăng nhập cũ.");
                 setIsChecking(false);
                 return;
             }
 
             console.log(`Tìm thấy user: ${user}. Đang kết nối...`);
-            socketClient.connect();
 
-            const stopLoop = socketClient.startReLoginLoop(user, code, (data: any) => {
+            const stopLoop = socket.startReLoginLoop(user, code, (data: any) => {
 
                 if (data.event === "RE_LOGIN" && data.status === "success") {
                     console.log("Re-login thành công!");

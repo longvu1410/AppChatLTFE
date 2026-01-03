@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { X, Users, Check } from "lucide-react";
-import { socketClient } from "../services/socketClient";
+import { SocketClient } from "../services/socketClient";
 
 interface User {
   id: number;
@@ -41,7 +41,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
     setLoading(true);
 
     // 👉 Gửi CREATE_ROOM qua WebSocket (SocketClient Singleton)
-    socketClient.send({
+    SocketClient.getInstance().send({
       action: "onchat",
       data: {
         event: "CREATE_ROOM",
