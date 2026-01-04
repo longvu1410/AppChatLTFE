@@ -39,6 +39,14 @@ export class SocketClient {
         };
     }
 
+    disconnect() {
+        if (this.socket) {
+            this.socket.close();
+            this.socket = null;
+            console.log("Đã ngắt kết nối Socket");
+        }
+    }
+
     send(data: any) {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.socket.send(JSON.stringify(data));
@@ -131,6 +139,16 @@ export class SocketClient {
                 }
             }
         });
+    }
+
+    logout() {
+        this.send({
+            action: "onchat",
+            data: {
+                event: "LOGOUT"
+            }
+        });
+        this.disconnect();
     }
 
     register(user: string, pass: string) {

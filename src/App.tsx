@@ -10,6 +10,15 @@ function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
 
+    const handleLogout = () => {
+        SocketClient.getInstance().logout();
+
+        localStorage.removeItem("USER");
+        localStorage.removeItem("RE_LOGIN_CODE");
+
+        setIsAuthenticated(false);
+    };
+
     useEffect(() => {
         const checkSession = () => {
             console.log("Loading auth state from localStorage...");
@@ -86,7 +95,7 @@ function App() {
 
                 <Route
                     path="/chat"
-                    element={isAuthenticated ? <ChatPage/> : <Navigate to="/login" />}
+                    element={isAuthenticated ? (<ChatPage onLogout={handleLogout} />) : (<Navigate to="/login" />)}
                 />
             </Routes>
         </BrowserRouter>
