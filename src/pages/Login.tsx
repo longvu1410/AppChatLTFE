@@ -16,7 +16,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     const userRef = useRef("");
 
     useEffect(() => {
-        // socketClient.connect();
+        SocketClient.getInstance().connect();
 
         const handleServerResponse = (data: any) => {
             if (data.event === "LOGIN_SUCCESS" || (data.event === "LOGIN" && data.status === "success")) {

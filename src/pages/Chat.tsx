@@ -15,7 +15,11 @@ export interface Conversation {
     avatar?: string;
 }
 
-const ChatPage: React.FC = () => {
+interface Props {
+    onLogout: () => void;
+}
+
+const ChatPage: React.FC<Props> = ({onLogout}) => {
     const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [currentUser, setCurrentUser] = useState("");
@@ -159,11 +163,6 @@ const ChatPage: React.FC = () => {
         );
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem("USER");
-        navigate("/login");
-    };
-
     const fileredConversations = conversations.filter(c => {
         if(!c || !c.id || !c.name) return false;
         if(filterType === "all") return true;
@@ -181,7 +180,7 @@ const ChatPage: React.FC = () => {
                     conversations={fileredConversations}
                     selectedId={currentConversationId}
                     onSelectConversation={handleSelectConversation}
-                    onLogout={handleLogout}
+                    onLogout={onLogout}
                     currentUser={currentUser}
                     onOpenCreateGroup={() => {}}
                     filterType={filterType}
