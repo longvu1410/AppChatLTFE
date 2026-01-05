@@ -1,188 +1,183 @@
 import React, { useEffect, useState } from "react";
-import { Search, UserPlus, LogOut, MessageCircle, Sun, Moon } from "lucide-react";
+import { Search, LogOut, MessageCircle, Moon, UserPlus,Sun } from "lucide-react";
+import { Conversation } from "../pages/Chat";
+import { SocketClient } from "../services/socketClient";
 
-interface Conversation {
-    id: number;
-    name: string;
-    msg?: string;
-    time?: string;
-    isGroup: boolean;
-    avatar?: string;
-}
 
-interface SidebarProps {
-    onOpenCreateGroup: () => void;
-    selectedId: number;
-    onSelectConversation: (id: number) => void;
-    onLogout: () => void;
+
+interface Props {
     conversations: Conversation[];
+    selectedId: string | null;
+    onSelectConversation: (id: string) => void;
+    onOpenCreateGroup: () => void;
+    onLogout: () => void;
     currentUser: string;
+    filterType:"all"|"1";
+    setFilterType:React.Dispatch<React.SetStateAction<"all"|"1">>;
+    onlineMap: Record<string,boolean>;
+    searchText:string;
+    setSearchText:(v:string) => void;
+    onSearchUser:() => void;
+
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({
-    onOpenCreateGroup,
-    selectedId,
-    onSelectConversation,
-    onLogout,
-    conversations,
-    currentUser
-}) => {
-    const [activeTab, setActiveTab] = useState<"all" | "groups">("all");
-    const [isDark, setIsDark] = useState(false);
+export const Sidebar: React.FC<Props> = ({
+                                             conversations,
+                                             selectedId,
+                                             onSelectConversation,
+                                             onLogout,
+                                             currentUser,
+                                             filterType,
+                                             setFilterType,
+                                             onlineMap,
+                                             searchText,
+                                             setSearchText,
+                                             onSearchUser
 
-    // Lọc danh sách theo tab
-    const filteredList =
-        activeTab === "all" ? conversations : conversations.filter(c => c.isGroup);
-
-    // Dark mode
-    useEffect(() => {
+                                         }) => {
+    const socketClient = SocketClient.getInstance();
+    const [isDark,setIsDark] = useState(false);
+    useEffect(() =>{
         const html = document.documentElement;
-        html.setAttribute("data-theme", isDark ? "dark" : "light");
-    }, [isDark]);
-
+        if(isDark){
+            html.setAttribute('data-theme','dark');
+        }else{
+            html.setAttribute('data-theme','light');
+        }
+    },[isDark]);
     return (
-        <div className="flex w-full md:w-80 bg-base-100 border-r border-gray-100 flex-col p-4 h-full">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
+        <div className="w-full md:w-80 bg-base-100 border-r border-gray-100 flex-col p-4 h-full">
+            <div className="flex justiful-between items-center mb-6 ">
                 <h1 className="text-2xl font-black text-lime-600 tracking-tighter flex items-center gap-2">
                     <MessageCircle className="w-8 h-8 fill-lime-600 text-lime-600" />
-                    NLUChat
-                </h1>
+                    NLUChat</h1>
+                <button className="btn btn-cricle btn-ghost btn-sm" onClick={() =>setIsDark(!isDark)}>
+                    {isDark ? <Moon className="w-6 h-6 text-gray-600"/> : <Sun className="w-6 h-6 text-lime-500"/>}
 
-                <button
-                    className="btn btn-circle btn-ghost btn-sm"
-                    onClick={() => setIsDark(!isDark)}
-                >
-                    {isDark ? (
-                        <Moon className="w-6 h-6 text-gray-600" />
-                    ) : (
-                        <Sun className="w-6 h-6 text-lime-500" />
-                    )}
                 </button>
             </div>
 
-            {/* User Info */}
             <div className="mb-4 flex items-center gap-3 bg-lime-50 p-3 rounded-2xl border border-lime-100">
                 <div className="avatar placeholder">
                     <div className="bg-lime-500 text-white rounded-full w-10">
-                        <span className="text-xl font-bold">
-                            {currentUser?.charAt(0).toUpperCase() || "U"}
-                        </span>
+            <span className="text-xl font-bold">
+              {currentUser.charAt(0).toUpperCase()}
+            </span>
                     </div>
                 </div>
-
                 <div className="overflow-hidden flex-1">
                     <div className="font-bold text-sm truncate">{currentUser}</div>
-                    <div className="text-xs text-lime-600 font-bold">● Online</div>
-                </div>
+                    <div className="text-xs text-lime-600 font-bolđ" > Online</div>
 
-                <button
-                    onClick={onLogout}
-                    className="btn btn-ghost btn-sm btn-circle text-red-400 hover:bg-red-50"
-                >
+                </div>
+                <button onClick={onLogout} className="btn btn-ghost btn-sm btn-circle text-red-400 hover:bg-red-50">
                     <LogOut size={18} />
                 </button>
             </div>
 
-            {/* Search + Create Group */}
             <div className="flex gap-2 mb-4">
                 <label className="input input-bordered flex items-center gap-2 flex-1 rounded-full h-10 bg-gray-50 focus-within:bg-base-100 focus-within:border-lime-500 transition-all">
-                    <Search className="w-4 h-4 text-gray-400" />
-                    <input type="text" className="grow text-sm" placeholder="Tìm kiếm..." />
-                </label>
+                    <Search className="w-4 h-4 text-gray-400"/>
+                    <input
+                        type="text"
+                        className="grow text-sm"
+                        placeholder="Tìm kiếm..."
+                        value={searchText}
+                        onChange={(e) => setSearchText(e.target.value)}
+                        onKeyDown={(e) =>{
+                            if(e.key === "Enter"){
+                                onSearchUser();
+                            }
+                        }}
+                    />
+                    <button
+                        onClick={onSearchUser}
+                        className="btn btn-circle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
+                        title="nhắn tin vớiuser"
+                    >
+                        <Search size={18}/>
 
+                    </button>
+                </label>
                 <button
-                    onClick={onOpenCreateGroup}
-                    className="btn btn-circle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
-                    title="Tạo nhóm mới"
-                >
-                    <UserPlus size={18} />
+                    onClick={() => {
+                        const name = prompt("Tên phòng:");
+                        if (name) {
+                            socketClient.create(name);
+                            window.dispatchEvent(
+                                new CustomEvent("ROOM_CREATED",{detail:name})
+                            );
+                        }
+                    }}
+                    className="btn btn-cricle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
+                    title="Tạo nhóm mới">
+                    <UserPlus size={18}/>
                 </button>
             </div>
 
-            {/* Tabs */}
             <div className="flex p-1 bg-gray-100 rounded-xl mb-4">
                 <button
-                    onClick={() => setActiveTab("all")}
-                    className={`flex-1 py-1 text-xs font-bold rounded-lg ${
-                        activeTab === "all"
-                            ? "bg-base-100 shadow text-lime-600"
-                            : "text-gray-500 hover:bg-gray-200"
-                    }`}
-                >
-                    Tất cả
+                    onClick={() => setFilterType("all")}
+                    className={`flex-1 py-1 text-xs font-bold rounded-lg transition${filterType === "all" ? "bg-white text-black shadow" : "text-gray-500"}`}
+                >Tất cả
                 </button>
-
                 <button
-                    onClick={() => setActiveTab("groups")}
-                    className={`flex-1 py-1 text-xs font-bold rounded-lg ${
-                        activeTab === "groups"
-                            ? "bg-base-100 shadow text-lime-600"
-                            : "text-gray-500 hover:bg-gray-200"
-                    }`}
-                >
-                    Nhóm
+                    onClick={() => setFilterType("1")}
+                    className={`flex-1 py-1 text-xs font-bold rounded-lg ${filterType === "1" ? "bg-white text-black shadow" : "text-gray-500"}`}
+                >Nhóm
                 </button>
             </div>
 
-            {/* Conversation List */}
             <div className="flex-1 overflow-y-auto space-y-1">
-                {filteredList.map(item => (
+                {conversations.map(c => (
                     <div
-                        key={item.id}
-                        onClick={() => onSelectConversation(item.id)}
+                        key={String(c.id)}
+                        onClick={() => onSelectConversation(c.id)}
                         className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
-                            selectedId === item.id
-                                ? "bg-lime-50 border border-lime-200 shadow-sm"
-                                : "hover:bg-gray-50 border border-transparent"
+                            selectedId === c.id ? "bg-lime-50 border border-lime-200 shadow-sm" : "hover:bg-gray-50 border border-transparent"
                         }`}
                     >
-                        <div className="avatar">
-                            <div className="w-10 rounded-full">
-                                <img
-                                    src={
-                                        item.avatar ||
-                                        "https://i.pravatar.cc/150?img=5"
-                                    }
-                                    alt=""
+                        <div className="relative flex items-center gap-2">
+                            <div className="avatar placeholder relative">
+                                <div className="bg-lime-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+      <span className="text-sm font-bold">
+        {c.name.charAt(0)?.toUpperCase() ?? "?"}
+      </span>
+                                </div>
+
+                                {/* DOT ONLINE */}
+                                <span
+                                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white
+      ${onlineMap[c.id] ? "bg-green-500" : "bg-gray-400"}`}
                                 />
                             </div>
+
+                            {/* TEXT ONLINE */}
+                            <span
+                                className={`text-[11px] font-semibold ${
+                                    onlineMap[c.id] ? "text-green-600" : "text-gray-400"
+                                }`}
+                            >
+    {onlineMap[c.id] ? "Online" : "Offline"}
+  </span>
                         </div>
+
+
 
                         <div className="flex-1 min-w-0">
-                            <div
-                                className={`font-bold truncate ${
-                                    selectedId === item.id
-                                        ? "text-lime-700"
-                                        : "text-base-content"
-                                }`}
-                            >
-                                {item.name}
-                            </div>
-
-                            <div
-                                className={`text-xs truncate ${
-                                    selectedId === item.id
-                                        ? "text-lime-600 font-medium"
-                                        : "text-gray-500"
-                                }`}
-                            >
-                                {item.msg || "Chưa có tin nhắn"}
+                            <div className="font-bold">{c.name}</div>
+                            <div className="text-xs text-gray-500">
+                                {typeof c.lastMessage ==="string"
+                                    ? c.lastMessage
+                                    : "Chưa có tin nhắn"}
                             </div>
                         </div>
 
-                        <div className="text-[10px] text-gray-400 font-medium">
-                            {item.time || ""}
-                        </div>
+                        {c.unread > 0 && (
+                            <span className="badge badge-error">{c.unread}</span>
+                        )}
                     </div>
                 ))}
-
-                {/* Nếu chưa có đoạn chat */}
-                {filteredList.length === 0 && (
-                    <div className="text-center text-gray-400 text-sm mt-6">
-                        Chưa có cuộc trò chuyện
-                    </div>
-                )}
             </div>
         </div>
     );

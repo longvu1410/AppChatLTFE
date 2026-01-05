@@ -1,7 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import {Link, useNavigate} from 'react-router-dom';
 import {useEffect, useState} from "react";
-import {socketClient} from "../services/socketClient";
+import {SocketClient} from "../services/socketClient";
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
@@ -12,8 +12,6 @@ const Register: React.FC = () => {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        socketClient.connect();
-
         const handleServerResponse = (data: any) => {
 
             if (data.event === "REGISTER" && data.status === "success") {
@@ -25,7 +23,7 @@ const Register: React.FC = () => {
             }
         };
 
-        const unsubscribe = socketClient.onMessage(handleServerResponse);
+        const unsubscribe = SocketClient.getInstance().subscribe(handleServerResponse);
 
         return () => {
             unsubscribe();
@@ -46,7 +44,7 @@ const Register: React.FC = () => {
         }
 
         setError("");
-        socketClient.register(user, pass);
+        SocketClient.getInstance().register(user, pass);
     };
 
     const handleTyping = (setter: any, value: string) => {
