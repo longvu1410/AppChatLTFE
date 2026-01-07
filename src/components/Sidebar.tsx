@@ -46,8 +46,8 @@ export const Sidebar: React.FC<Props> = ({
         }
     },[isDark]);
     return (
-        <div className="w-full md:w-80 bg-base-100 border-r border-gray-100 flex-col p-4 h-full">
-            <div className="flex justiful-between items-center mb-6 ">
+        <div className="w-full md:w-80 bg-base-100 border-r border-gray-100 flex-col flex h-screen">
+            <div className="flex justify-between items-center mb-2 p-4">
                 <h1 className="text-2xl font-black text-lime-600 tracking-tighter flex items-center gap-2">
                     <MessageCircle className="w-8 h-8 fill-lime-600 text-lime-600" />
                     NLUChat</h1>
@@ -57,6 +57,7 @@ export const Sidebar: React.FC<Props> = ({
                 </button>
             </div>
 
+            <div className="px-4">
             <div className="mb-4 flex items-center gap-3 bg-lime-50 p-3 rounded-2xl border border-lime-100">
                 <div className="avatar placeholder">
                     <div className="bg-lime-500 text-white rounded-full w-10">
@@ -74,8 +75,9 @@ export const Sidebar: React.FC<Props> = ({
                     <LogOut size={18} />
                 </button>
             </div>
+            </div>
 
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 items-center px-4">
                 <label className="input input-bordered flex items-center gap-2 flex-1 rounded-full h-10 bg-gray-50 focus-within:bg-base-100 focus-within:border-lime-500 transition-all">
                     <Search className="w-4 h-4 text-gray-400"/>
                     <input
@@ -90,14 +92,6 @@ export const Sidebar: React.FC<Props> = ({
                             }
                         }}
                     />
-                    <button
-                        onClick={onSearchUser}
-                        className="btn btn-circle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
-                        title="nhắn tin vớiuser"
-                    >
-                        <Search size={18}/>
-
-                    </button>
                 </label>
                 <button
                     onClick={() => {
@@ -109,12 +103,12 @@ export const Sidebar: React.FC<Props> = ({
                             );
                         }
                     }}
-                    className="btn btn-cricle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
+                    className="btn btn-circle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
                     title="Tạo nhóm mới">
                     <UserPlus size={18}/>
                 </button>
             </div>
-
+            <div className="px-4">
             <div className="flex p-1 bg-gray-100 rounded-xl mb-4">
                 <button
                     onClick={() => setFilterType("all")}
@@ -127,8 +121,9 @@ export const Sidebar: React.FC<Props> = ({
                 >Nhóm
                 </button>
             </div>
+            </div>
 
-            <div className="flex-1 overflow-y-auto space-y-1">
+            <div className="flex-1 overflow-y-auto space-y-1 min-h-0 pb-2">
                 {conversations.map(c => (
                     <div
                         key={String(c.id)}
