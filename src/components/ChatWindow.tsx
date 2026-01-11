@@ -27,6 +27,7 @@ export const ChatWindow: React.FC<Props> = ({
     const socketClient = SocketClient.getInstance();
     const [messages, setMessages] = useState<Message[]>([]);
     const [text, setText] = useState("");
+    const [joined, setJoined] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
 
 
@@ -34,6 +35,7 @@ export const ChatWindow: React.FC<Props> = ({
 
  useEffect(() => {
         setMessages([]);
+        setJoined(false);
         const handleMessage = (res: any) => {
             const { event, data } = res;
             if(!data) return;
@@ -67,17 +69,24 @@ export const ChatWindow: React.FC<Props> = ({
                 const list: Message[] = Array.isArray(data)
                     ? data.map((m:any) => ({
                         from: m.from || m.name,
-                        mes:m.mes || m.message || "",
+                        mes:m.mes ,
                         time: m.createAt,
                         id: m.id
                     }))
                     :[];
                 list.sort((a,b) => Number(a.id)-Number(b.id));
                 setMessages(list);
+                return
 
             }
 
             if (event === "JOIN_ROOM" && conversation.type === "1") {
+                setJoined(true);
+                SocketClient.getInstance().getRoomChatMes(conversation.id, 1);
+                return;
+            }
+
+            if (event === "GET_ROOM_CHAT_MES" && conversation.type === "1") {
                 const list: Message[] = Array.isArray(data.chatData)
                     ? data.chatData.map((m: any) => ({
                         from: m.name,
@@ -86,15 +95,13 @@ export const ChatWindow: React.FC<Props> = ({
                         id: m.id
                     }))
                     : [];
-
-                list.sort((a, b) => Number(a.id) - Number(b.id));
+                list.sort((a,b) => Number(a.id)-Number(b.id));
                 setMessages(list);
+                return;
             }
         };
         const off = socketClient.subscribe(handleMessage);
         if(conversation.type === "1"){
-            socketClient.joinRoom(conversation.id);
-        }else {
             socketClient.getPeopleChatMes(conversation.id);
         }
 
@@ -106,15 +113,20 @@ export const ChatWindow: React.FC<Props> = ({
 
     },[messages]);
 
+    const handleJoinRoom = () => {
+        if (joined) return;
+        SocketClient.getInstance().joinRoom(conversation.id);
+    };
+
    // ================= SEND MESSAGE =================
     const sendMessage = () => {
         if (!text.trim()) return;
 
-        if (conversation.type === "1") {
-            socketClient.sendChat("room", conversation.id, text);
-        } else {
-            socketClient.sendChat("people", conversation.id, text);
-        }
+        SocketClient.getInstance().sendChat(
+            conversation.type === "1" ? "room" : "people",
+            conversation.id,
+            text
+        );
 
         // optimistic UI
         setMessages((prev) => [
