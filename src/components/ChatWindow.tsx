@@ -162,6 +162,7 @@ export const ChatWindow: React.FC<Props> = ({
                 </div>
                 <div className="flex-1 min-w-0">
                     <h2 className="font-bold text-base-content text-sm md:text-base truncate">{conversation.name}</h2>
+                    {conversation.type === "0" && (
                     <span
                         className={`text-xs font-bold block ${
                             isOnline ? "text-lime-600" : "text-gray-400"
@@ -169,11 +170,28 @@ export const ChatWindow: React.FC<Props> = ({
                     >
             {isOnline ? "Online" : "Offline"}
           </span>
+                    )}
+                    {conversation.type === "1" && (
+                        <span className="text-xs text-gray-400">Nhóm chat</span>
+                    )}
 
                 </div>
+                {conversation.type === "1" && !joined && (
+                    <button
+                        onClick={handleJoinRoom}
+                        className="btn btn-sm btn-outline"
+                    >
+                        Tham gia phòng
+                    </button>
+                )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {messages.length === 0 && (
+                    <div className="text-center text-gray-400 text-sm mt-10">
+                        Chưa có tin nhắn nào
+                    </div>
+                )}
                 {messages.map((m, i) => {
                     const isMe = m.from === currentUser;
                     const currentDate = getDateLabel(m.time!);
@@ -190,6 +208,13 @@ export const ChatWindow: React.FC<Props> = ({
                                 </div>
                             )}
                             <div  className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
+                                 <div className="flex flex-col max-w-xs">
+
+                                {conversation.type === "1" && !isMe && (
+                                    <span className="text-[11px] text-gray-500 ml-1 mb-0.5 font-semibold">
+                                       {m.from}
+                                    </span>
+                                )}
                                 <div
                                     className={`chat-bubble ${
                                         isMe ? "bg-base-100 text-gray-700" :"bg-lime-500 text-white"
@@ -201,6 +226,7 @@ export const ChatWindow: React.FC<Props> = ({
                                             {new Date(m.time).toLocaleTimeString([],{hour: "2-digit",minute:"2-digit"})}
                                         </div>
                                     )}
+                                </div>
                                 </div>
                             </div>
 
@@ -219,7 +245,7 @@ export const ChatWindow: React.FC<Props> = ({
                     onKeyDown={e => e.key === "Enter" && sendMessage()}
                     placeholder="Nhập tin nhắn..."
                 />
-                <button onClick={sendMessage} className="btn btn-cricle btn-sm border-none shadow-md transition-all">
+                <button onClick={sendMessage} className="btn btn-circle btn-sm border-none shadow-md transition-all">
                     <Send size={18} />
                 </button>
             </div>
