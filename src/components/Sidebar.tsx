@@ -37,6 +37,8 @@ export const Sidebar: React.FC<Props> = ({
                                          }) => {
     const socketClient = SocketClient.getInstance();
     const [isDark,setIsDark] = useState(false);
+    const [showCreateGroup, setShowCreateGroup] = useState(false);
+    const [groupName, setGroupName] = useState("");
     useEffect(() =>{
         const html = document.documentElement;
         if(isDark){
@@ -51,7 +53,7 @@ export const Sidebar: React.FC<Props> = ({
                 <h1 className="text-2xl font-black text-lime-600 tracking-tighter flex items-center gap-2">
                     <MessageCircle className="w-8 h-8 fill-lime-600 text-lime-600" />
                     NLUChat</h1>
-                <button className="btn btn-cricle btn-ghost btn-sm" onClick={() =>setIsDark(!isDark)}>
+                <button className="btn btn-circle btn-ghost btn-sm" onClick={() =>setIsDark(!isDark)}>
                     {isDark ? <Moon className="w-6 h-6 text-gray-600"/> : <Sun className="w-6 h-6 text-lime-500"/>}
 
                 </button>
@@ -68,7 +70,7 @@ export const Sidebar: React.FC<Props> = ({
                 </div>
                 <div className="overflow-hidden flex-1">
                     <div className="font-bold text-sm truncate">{currentUser}</div>
-                    <div className="text-xs text-lime-600 font-bolđ" > Online</div>
+                    <div className="text-xs text-lime-600 font-bold" > Online</div>
 
                 </div>
                 <button onClick={onLogout} className="btn btn-ghost btn-sm btn-circle text-red-400 hover:bg-red-50">
@@ -94,17 +96,10 @@ export const Sidebar: React.FC<Props> = ({
                     />
                 </label>
                 <button
-                    onClick={() => {
-                        const name = prompt("Tên phòng:");
-                        if (name) {
-                            socketClient.create(name);
-                            window.dispatchEvent(
-                                new CustomEvent("ROOM_CREATED",{detail:name})
-                            );
-                        }
-                    }}
+                    onClick={() => setShowCreateGroup(true)}
                     className="btn btn-circle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
-                    title="Tạo nhóm mới">
+                    title="Tạo nhóm mới"
+                >
                     <UserPlus size={18}/>
                 </button>
             </div>
@@ -174,6 +169,56 @@ export const Sidebar: React.FC<Props> = ({
                     </div>
                 ))}
             </div>
+
+             {showCreateGroup && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                    <div className="bg-base-100 w-80 rounded-2xl p-5 shadow-xl">
+                        <h2 className="text-lg font-bold mb-4 text-lime-600">
+                            Tạo nhóm chat
+                        </h2>
+
+                        <input
+                            type="text"
+                            placeholder="Nhập tên nhóm..."
+                            className="input input-bordered w-full mb-4 focus:border-lime-500"
+                            value={groupName}
+                            onChange={(e) => setGroupName(e.target.value)}
+                        />
+
+                        <div className="flex justify-end gap-2">
+                            <button
+                                className="btn btn-sm btn-ghost"
+                                onClick={() => {
+                                    setShowCreateGroup(false);
+                                    setGroupName("");
+                                }}
+                            >
+                                Hủy
+                            </button>
+
+                            <button
+                                className="btn btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none"
+                                disabled={!groupName.trim()}
+                                onClick={() => {
+                                    socketClient.create(groupName.trim());
+                                    window.dispatchEvent(
+                                        new CustomEvent("ROOM_CREATED", {
+                                            detail: groupName.trim()
+                                        })
+                                    );
+                                    setShowCreateGroup(false);
+                                    setGroupName("");
+                                }}
+                            >
+                                Tạo nhóm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+
         </div>
     );
 };

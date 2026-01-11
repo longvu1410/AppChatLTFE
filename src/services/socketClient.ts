@@ -111,23 +111,12 @@ create(roomName:string){
         });
     }
 
-    sendMessage(roomName: string, message: string) {
-  this.send({
-    action: "onchat",
-    data: {
-      event: "SEND_MESSAGE",
-      data: {
-        name: roomName,
-        message: message,
-      },
-    },
-  });
-}
-getRoomHistory(roomName: string, page: number = 1) {
+   
+getRoomChatMes(roomName: string, page: number = 1) {
     this.send({
         action: "onchat",
         data: {
-            event: "GET_ROOM_CHAT_MET",
+            event: "GET_ROOM_CHAT_MES",
             data: {
                 name: roomName,
                 page: page
