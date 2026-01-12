@@ -81,9 +81,10 @@ const ChatPage: React.FC<Props> = ({onLogout}) => {
 
             // ===== PRIVATE MESSAGE =====
             if (event === "SEND_CHAT") {
-                const { from,to , mes, type } = data;
-                const targetId = type === "room" ? to : from ;
-                if(!targetId) return;
+                const targetId = data.type === 1
+                    ? data.to      // room
+                    : data.name;  // private
+
 
                 setConversations(prev =>
                     prev.map(c =>

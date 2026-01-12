@@ -41,28 +41,26 @@ export const ChatWindow: React.FC<Props> = ({
             if(!data) return;
 
             if (event === "SEND_CHAT") {
-                if(!data || !data.mes)return;
+                const fromUser = data.name;
+                const toUser = data.to;
 
-                const fromUser = data.from || data.name;
-                if(!fromUser) return;
-                if(fromUser === currentUser) return;
-                const isValid =
-                    (conversation.type ==="0" &&
-                        (data.from === conversation.id ||
-                        data.to === conversation.id )) ||
-                    (conversation.type === "1" &&
-                            data.to === conversation.id)
-                if(!isValid) return;
+                if (!fromUser || !toUser) return;
 
-                    const  newMessage = {
-                        from : fromUser,
-                        mes: data.mes,
-                        time: data.createAt || new Date().toISOString(),
-                        id: data.id ?? `rt-${Date.now()}`,
+                const isForThisConversation =
+                    conversation.type === "0" &&
+                    (fromUser === conversation.id || toUser === conversation.id);
 
+                if (!isForThisConversation) return;
+
+                const newMessage: Message = {
+                    from: fromUser,
+                    mes: data.mes,
+                    time: new Date().toISOString(),
+                    id: `rt-${Date.now()}`
                 };
-                setMessages(prev => [...prev, newMessage]);
 
+                setMessages(prev => [...prev, newMessage]);
+                return;
             }
 
             if(event==="GET_PEOPLE_CHAT_MES" && conversation.type=== "0"){
@@ -101,7 +99,7 @@ export const ChatWindow: React.FC<Props> = ({
             }
         };
         const off = socketClient.subscribe(handleMessage);
-        if(conversation.type === "1"){
+        if(conversation.type === "0"){
             socketClient.getPeopleChatMes(conversation.id);
         }
 
@@ -157,8 +155,27 @@ export const ChatWindow: React.FC<Props> = ({
                 <button className="md:hidden btn btn-ghost btn-circle btn-sm -ml-2 text-gray-600" onClick={onBack}>
                     <ChevronLeft size={24} />
                 </button>
-                <div className="avatar online">
-                    <div className="w-9 md:w-10 rounded-full border border-lime-200"></div>
+                <div className="relative">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border border-lime-200 bg-lime-500 flex items-center justify-center text-white font-bold">
+
+                        {conversation.type === "1" ? (
+                            <img
+                                src="/room.png"
+                                alt="room avatar"
+                                className="w-full h-full object-cover"
+                            />
+                        ) : (
+                            <div className="bg-lime-500 text-white w-full h-full flex items-center justify-center font-bold">
+                                {conversation.name.charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    {conversation.type === "0" && (
+                        <span
+                            className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white
+                            ${isOnline ? "bg-green-500" : "bg-gray-400"}`}
+                        />
+                    )}
                 </div>
                 <div className="flex-1 min-w-0">
                     <h2 className="font-bold text-base-content text-sm md:text-base truncate">{conversation.name}</h2>
