@@ -130,9 +130,14 @@ export const Sidebar: React.FC<Props> = ({
                         <div className="relative flex items-center gap-2">
                             <div className="avatar placeholder relative">
                                 <div className="bg-lime-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
-      <span className="text-sm font-bold">
-        {c.name.charAt(0)?.toUpperCase() ?? "?"}
-      </span>
+                                    {c.type === "1" ? (
+                                        <img src="/room.png" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="bg-lime-500 text-white flex items-center justify-center font-bold">
+                                            {c.name.charAt(0).toUpperCase()}
+                                        </div>
+                                    )}
+
                                 </div>
 
                                 {/* DOT ONLINE */}
