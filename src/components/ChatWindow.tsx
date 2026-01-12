@@ -1,15 +1,8 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Send, ChevronLeft } from "lucide-react";
-import { SocketClient } from "../services/socketClient";
 import { Conversation } from "../pages/Chat";
-
-
-interface Message {
-    from: string;
-    mes: string;
-    time?:string;
-    id:number| string;
-}
+import {useChatMessages} from "../hooks/useChatMessages";
+import {useAutoScroll} from "../hooks/useAutoScroll";
 
 interface Props {
     conversation: Conversation;
@@ -18,135 +11,30 @@ interface Props {
     isOnline: boolean;
 }
 
-export const ChatWindow: React.FC<Props> = ({
-                                                conversation,
-                                                currentUser,
-                                                onBack,
-                                                isOnline
-                                            }) => {
-    const socketClient = SocketClient.getInstance();
-    const [messages, setMessages] = useState<Message[]>([]);
+
+export const ChatWindow : React.FC<Props> = ({
+                                                 conversation,
+                                                 currentUser,
+                                                 onBack,
+                                                 isOnline
+                                             }) => {
     const [text, setText] = useState("");
-    const [joined, setJoined] = useState(false);
-    const endRef = useRef<HTMLDivElement>(null);
+    const endRef = useRef<HTMLDivElement | null >(null);
 
+    const {
+        messages,
+        joined,
+        sendMessage,
+        joinRoom,
+        getDateLabel
+} = useChatMessages(conversation, currentUser);
 
-
-
- useEffect(() => {
-        setMessages([]);
-        setJoined(false);
-        const handleMessage = (res: any) => {
-            const { event, data } = res;
-            if(!data) return;
-
-            if (event === "SEND_CHAT") {
-                const fromUser = data.name;
-                const toUser = data.to;
-
-                if (!fromUser || !toUser) return;
-
-                const isForThisConversation =
-                    conversation.type === "0" &&
-                    (fromUser === conversation.id || toUser === conversation.id);
-
-                if (!isForThisConversation) return;
-
-                const newMessage: Message = {
-                    from: fromUser,
-                    mes: data.mes,
-                    time: new Date().toISOString(),
-                    id: `rt-${Date.now()}`
-                };
-
-                setMessages(prev => [...prev, newMessage]);
-                return;
-            }
-
-            if(event==="GET_PEOPLE_CHAT_MES" && conversation.type=== "0"){
-                const list: Message[] = Array.isArray(data)
-                    ? data.map((m:any) => ({
-                        from: m.from || m.name,
-                        mes:m.mes ,
-                        time: m.createAt,
-                        id: m.id
-                    }))
-                    :[];
-                list.sort((a,b) => Number(a.id)-Number(b.id));
-                setMessages(list);
-                return
-
-            }
-
-            if (event === "JOIN_ROOM" && conversation.type === "1") {
-                setJoined(true);
-                SocketClient.getInstance().getRoomChatMes(conversation.id, 1);
-                return;
-            }
-
-            if (event === "GET_ROOM_CHAT_MES" && conversation.type === "1") {
-                const list: Message[] = Array.isArray(data.chatData)
-                    ? data.chatData.map((m: any) => ({
-                        from: m.name,
-                        mes: m.mes,
-                        time: m.createAt,
-                        id: m.id
-                    }))
-                    : [];
-                list.sort((a,b) => Number(a.id)-Number(b.id));
-                setMessages(list);
-                return;
-            }
-        };
-        const off = socketClient.subscribe(handleMessage);
-        if(conversation.type === "0"){
-            socketClient.getPeopleChatMes(conversation.id);
-        }
-
-        return off;
-    }, [conversation.id,conversation.type]);
-
-    useEffect(() => {
-        endRef.current?.scrollIntoView({behavior: "smooth"});
-
-    },[messages]);
-
-    const handleJoinRoom = () => {
-        if (joined) return;
-        SocketClient.getInstance().joinRoom(conversation.id);
-    };
-
-   // ================= SEND MESSAGE =================
-    const sendMessage = () => {
-        if (!text.trim()) return;
-
-        SocketClient.getInstance().sendChat(
-            conversation.type === "1" ? "room" : "people",
-            conversation.id,
-            text
-        );
-
-        // optimistic UI
-        setMessages((prev) => [
-            ...prev,
-            {
-                from: currentUser,
-                mes: text,
-                time: new Date().toISOString(),
-                id: `local-${Date.now()}`,
-            },
-        ]);
-
+    useAutoScroll(endRef,messages.length);
+    const hanldeSend = () =>{
+        if(!text.trim()) return;
+        sendMessage(text);
         setText("");
-    };
-    const getDateLabel = (time:string) => {
-        const d = new Date(time);
-        return d.toLocaleDateString("vi-VN" ,{
-            day:"2-digit",
-            month: "2-digit",
-            year: "numeric"
-        });
-    };
+    }
 
 
     return (
@@ -195,7 +83,7 @@ export const ChatWindow: React.FC<Props> = ({
                 </div>
                 {conversation.type === "1" && !joined && (
                     <button
-                        onClick={handleJoinRoom}
+                        onClick={joinRoom}
                         className="btn btn-sm btn-outline"
                     >
                         Tham gia phòng
@@ -219,9 +107,9 @@ export const ChatWindow: React.FC<Props> = ({
                         <React.Fragment key={m.id}>
                             {showDateDiver && (
                                 <div className="flex justify-center my-2">
-                  <span className="text-[11px] text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-                    {currentDate}
-                  </span>
+                                   <span className="text-[11px] text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                                      {currentDate}
+                                   </span>
                                 </div>
                             )}
                             <div  className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
@@ -259,10 +147,10 @@ export const ChatWindow: React.FC<Props> = ({
                     className="input input-ghost w-full focus:bg-transparent border-none focus:outline-none text-gray-700"
                     value={text}
                     onChange={e => setText(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && sendMessage()}
+                    onKeyDown={e => e.key === "Enter" && hanldeSend()}
                     placeholder="Nhập tin nhắn..."
                 />
-                <button onClick={sendMessage} className="btn btn-circle btn-sm border-none shadow-md transition-all">
+                <button onClick={hanldeSend} className="btn btn-circle btn-sm border-none shadow-md transition-all">
                     <Send size={18} />
                 </button>
             </div>
