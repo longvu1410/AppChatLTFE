@@ -4,6 +4,7 @@ export class SocketClient {
     private static instance: SocketClient | null = null;
     private socket: WebSocket | null = null;
     private handlers: ((data: any) => void)[] = [];
+    private connectionListeners: ((isConnected: boolean) => void)[] = [];
 
     private constructor() {}
 
@@ -16,12 +17,30 @@ export class SocketClient {
         return SocketClient.instance;
     }
 
+    public get isConnected(): boolean {
+        return this.socket?.readyState === WebSocket.OPEN;
+    }
+
+    public onConnectionChange(listener: (isConnected: boolean) => void) {
+        this.connectionListeners.push(listener);
+        listener(this.isConnected);
+
+        return () => {
+            this.connectionListeners = this.connectionListeners.filter(l => l !== listener);
+        };
+    }
+
+    private notifyConnectionChange(status: boolean) {
+        this.connectionListeners.forEach(listener => listener(status));
+    }
+
     connect() {
         if (this.socket) return;
         this.socket = new WebSocket(SOCKET_URL);
 
         this.socket.onopen = () => {
             console.log("WebSocket connected!");
+            this.notifyConnectionChange(true);
         };
 
         this.socket.onmessage = (e) => {
@@ -36,6 +55,8 @@ export class SocketClient {
 
         this.socket.onclose = () => {
             this.socket = null;
+            this.notifyConnectionChange(false);
+            setTimeout(() => this.connect(), 3000);
         };
     }
 
