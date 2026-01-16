@@ -5,15 +5,17 @@ import Login from './pages/Login';
 import Register from "./pages/Register";
 import ChatPage from './pages/Chat';
 import {useAuth} from "./hooks/useAuth";
+import {useSocketConnection} from "./hooks/useSocketConnection";
 
 function App() {
     const {isAuthenticated, isChecking, logout, loginSuccess} = useAuth();
+    const isSocketConnected = useSocketConnection();
 
-    if (isChecking) {
+    if (isChecking || !isSocketConnected) {
         return (
             <div className="flex flex-col justify-center items-center h-screen bg-white">
                 <span className="loading loading-spinner loading-lg text-lime-600"></span>
-                <p className="mt-4 text-gray-500 font-medium">Đang khôi phục kết nối...</p>
+                <p className="mt-4 text-gray-500 font-medium">{!isSocketConnected ? "Đang kết nối đến máy chủ..." : "Đang khôi phục phiên đăng nhập..."}</p>
             </div>
         );
     }
