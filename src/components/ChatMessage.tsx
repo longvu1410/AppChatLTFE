@@ -1,42 +1,70 @@
 import React from "react";
+import { Message } from "../hooks/useChatMessages";
+import { Conversation } from "../pages/Chat";
 
-interface ChatMessageProps {
-  message: {
-    sender?: string;
-    content: string;
-    time?: string;
-    isMine?: boolean;
-  };
+interface Props {
+    messages: Message[];
+    currentUser: string;
+    getDateLabel: (time: string) => string;
+    endRef: React.RefObject<HTMLDivElement | null>;
+    conversation: Conversation;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
-  return (
-    <div
-      className={`w-full flex mb-2 ${
-        message.isMine ? "justify-end" : "justify-start"
-      }`}
-    >
-      <div
-        className={`rounded-2xl px-3 py-2 max-w-[75%] text-sm shadow ${
-          message.isMine
-            ? "bg-lime-500 text-white"
-            : "bg-gray-100 text-gray-800"
-        }`}
-      >
-        {!message.isMine && (
-          <div className="font-semibold text-xs mb-1">
-            {message.sender || "User"}
-          </div>
-        )}
+export const ChatMessages: React.FC<Props> = ({
+                                                  messages,
+                                                  currentUser,
+                                                  getDateLabel,
+                                                  endRef,
+                                                  conversation,
+                                              }) => {
+    return (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 && (
+                <div className="text-center text-gray-400 text-sm mt-10">
+                    Chưa có tin nhắn nào
+                </div>
+            )}
 
-        <div>{message.content}</div>
+            {messages.map((m, i) => {
+                const isMe = m.from === currentUser;
+                const showDate =
+                    i === 0 ||
+                    getDateLabel(m.time!) !== getDateLabel(messages[i - 1].time!);
 
-        {message.time && (
-          <div className="text-[10px] opacity-70 mt-1 text-right">
-            {message.time}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+                return (
+                    <React.Fragment key={m.id}>
+                        {showDate && (
+                            <div className="flex justify-center">
+                <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                  {getDateLabel(m.time!)}
+                </span>
+                            </div>
+                        )}
+
+                        <div className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
+                            <div className="flex flex-col max-w-xs">
+                                {conversation.type === "1" && !isMe && (
+                                    <span className="text-xs text-gray-500 ml-1 mb-1 font-semibold">
+                    {m.from}
+                  </span>
+                                )}
+
+                                <div
+                                    className={`chat-bubble ${
+                                        isMe
+                                            ? "bg-base-100 text-gray-700"
+                                            : "bg-lime-500 text-white"
+                                    }`}
+                                >
+                                    {m.mes}
+                                </div>
+                            </div>
+                        </div>
+                    </React.Fragment>
+                );
+            })}
+
+            <div ref={endRef} />
+        </div>
+    );
 };
