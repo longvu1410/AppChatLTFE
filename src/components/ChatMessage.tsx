@@ -2,6 +2,15 @@ import React from "react";
 import { Message } from "../hooks/useChatMessages";
 import { Conversation } from "../pages/Chat";
 
+const formatTime = (time: string) => {
+    const d = new Date(time);
+    return d.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
+
+
 interface Props {
     messages: Message[];
     currentUser: string;
@@ -58,6 +67,15 @@ export const ChatMessages: React.FC<Props> = ({
                                 >
                                     {m.mes}
                                 </div>
+                                 {m.time && (
+            <span
+                className={`text-[11px] text-gray-400 mt-1 ${
+                    isMe ? "text-right" : "text-left"
+                }`}
+            >
+                {formatTime(m.time)}
+            </span>
+        )}
                             </div>
                         </div>
                     </React.Fragment>

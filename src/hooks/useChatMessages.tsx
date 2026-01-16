@@ -58,7 +58,7 @@ export const useChatMessages = (
                     {
                         from,
                         mes: data.mes,
-                        time: new Date().toISOString(),
+                        time: data.createAt || data.time,
                         id: `rt-${Date.now()}`
                     }
                 ]);

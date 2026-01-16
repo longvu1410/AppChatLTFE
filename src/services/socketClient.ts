@@ -245,7 +245,8 @@ sendChat(type: "room" | "people", to:string,mes:string){
                 event:"SEND_CHAT",
                 data:{
                     type,
-                    to,mes
+                    to,mes,
+                     createdAt: new Date().toISOString()
                 }
             }
         });

@@ -33,11 +33,26 @@ export const ChatHeader: React.FC<Props> = ({
 
             <div className="flex-1">
                 <div className="font-bold">{conversation.name}</div>
-                {conversation.type === "0" && (
-                    <div className={`text-xs ${isOnline ? "text-green-600" : "text-gray-400"}`}>
-                        {isOnline ? "Online" : "Offline"}
-                    </div>
-                )}
+<div
+    className={`text-xs ${
+        conversation.type === "1"
+            ? joined
+                ? "text-green-600"
+                : "text-gray-400"
+            : isOnline
+                ? "text-green-600"
+                : "text-gray-400"
+    }`}
+>
+    {conversation.type === "1"
+        ? joined
+            ? "Online"
+            : "Chưa tham gia"
+        : isOnline
+            ? "Online"
+            : "Offline"}
+</div>
+
             </div>
 
             {conversation.type === "1" && !joined && (
