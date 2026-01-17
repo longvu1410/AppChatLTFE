@@ -1,6 +1,6 @@
 import React from "react";
-import { Message } from "../hooks/useChatMessages";
-import { Conversation } from "../pages/Chat";
+import {Message} from "../hooks/useChatMessages";
+import {Conversation} from "../pages/Chat";
 
 const formatTime = (time: string) => {
     const d = new Date(time);
@@ -40,49 +40,76 @@ export const ChatMessages: React.FC<Props> = ({
                     i === 0 ||
                     getDateLabel(m.time!) !== getDateLabel(messages[i - 1].time!);
 
+                let content = null;
+                const rawMes = m.mes || "";
+                let isSticker = false;
+
+                if (rawMes.startsWith("$$STICKER$$")) {
+                    isSticker = true;
+                    const url = rawMes.replace("$$STICKER$$", "");
+                    content = <img src={url} alt="sticker" className="w-24 h-24 object-contain"/>;
+                } else if (rawMes.startsWith("$$IMG$$")) {
+                    const url = rawMes.replace("$$IMG$$", "");
+                    content = (
+                        <img
+                            src={url} alt="sent image"
+                            className="max-w-[200px] rounded-lg cursor-pointer hover:opacity-90 transition"
+                            onClick={() => window.open(url, '_blank')}
+                        />
+                    );
+                } else if (rawMes.startsWith("$$FILE$$")) {
+                    const parts = rawMes.split("$$NAME$$");
+                    const url = parts[0].replace("$$FILE$$", "");
+                    const fileName = parts[1] || "File đính kèm";
+                    content = (
+                        <a href={url} target="_blank" rel="noreferrer"
+                           className="flex items-center gap-2 text-blue-600 underline hover:text-blue-800">
+                            <span className="text-2xl">📄</span> {fileName}
+                        </a>
+                    );
+                } else {
+                    try {
+                        content = decodeURIComponent(rawMes);
+                    } catch {
+                        content = rawMes;
+                    }
+                }
+
+                const bubbleClass = isSticker
+                    ? "bg-transparent shadow-none border-none p-0"
+                    : (isMe ? "bg-lime-500 text-white" : "bg-base-100 text-gray-700 border border-gray-200");
+
                 return (
                     <React.Fragment key={m.id}>
                         {showDate && (
-                            <div className="flex justify-center">
-                <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
-                  {getDateLabel(m.time!)}
-                </span>
+                            <div className="flex justify-center my-4">
+                                <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                                    {getDateLabel(m.time!)}
+                                </span>
                             </div>
                         )}
 
                         <div className={`chat ${isMe ? "chat-end" : "chat-start"}`}>
-                            <div className="flex flex-col max-w-xs">
-                                {conversation.type === "1" && !isMe && (
-                                    <span className="text-xs text-gray-500 ml-1 mb-1 font-semibold">
-                    {m.from}
-                  </span>
-                                )}
+                            {conversation.type === "1" && !isMe && (
+                                <span className="text-xs text-gray-500 ml-1 mb-1 font-semibold">
+                                        {m.from}
+                                    </span>
+                            )}
 
-                                <div
-                                    className={`chat-bubble ${
-                                        isMe
-                                            ? "bg-base-100 text-gray-700"
-                                            : "bg-lime-500 text-white"
-                                    }`}
-                                >
-                                    {m.mes}
-                                </div>
-                                 {m.time && (
-            <span
-                className={`text-[11px] text-gray-400 mt-1 ${
-                    isMe ? "text-right" : "text-left"
-                }`}
-            >
-                {formatTime(m.time)}
-            </span>
-        )}
+                            <div className={`chat-bubble ${bubbleClass} break-words whitespace-pre-wrap max-w-[85%] md:max-w-[70%]`}>
+                                {content}
                             </div>
+                            {m.time && (
+                                <div className="chat-footer opacity-50 text-[10px] mt-1">
+                                    {formatTime(m.time)}
+                                </div>
+                            )}
                         </div>
                     </React.Fragment>
                 );
             })}
 
-            <div ref={endRef} />
+            <div ref={endRef}/>
         </div>
     );
 };
