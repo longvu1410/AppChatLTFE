@@ -22,6 +22,8 @@ interface Props {
 }
 
 const ChatPage: React.FC<Props> = ({onLogout}) => {
+    const [joinedRooms, setJoinedRooms] = useState<Record<string, boolean>>({});
+
     const { currentUser } = useCurrentUser();
 
     const {
@@ -61,6 +63,7 @@ const ChatPage: React.FC<Props> = ({onLogout}) => {
                     filterType={filterType}
                     setFilterType={setFilterType}
                     onlineMap={onlineMap}
+                      joinedRooms={joinedRooms}
                     searchText = {searchText}
                     setSearchText ={setSearchText}
                     onSearchUser={handleSearchUser}
@@ -76,7 +79,9 @@ const ChatPage: React.FC<Props> = ({onLogout}) => {
                         currentUser={currentUser}
                         isOnline= {onlineMap[currentConversation.id] ?? false}
                         onBack={() =>  handleSelectConversation("")}
-
+                         onJoinedRoom={(roomId) =>
+        setJoinedRooms(prev => ({ ...prev, [roomId]: true }))
+                         }
                     />
                 ) : (
                     <WelcomeScreen />

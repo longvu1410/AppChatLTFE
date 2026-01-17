@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Conversation } from "../pages/Chat";
 import {useChatMessages} from "../hooks/useChatMessages";
 import {useAutoScroll} from "../hooks/useAutoScroll";
@@ -11,6 +11,7 @@ interface Props {
     currentUser: string;
     onBack: () => void;
     isOnline: boolean;
+     onJoinedRoom: (roomId: string) => void;
 }
 
 
@@ -18,7 +19,8 @@ export const ChatWindow : React.FC<Props> = ({
                                                  conversation,
                                                  currentUser,
                                                  onBack,
-                                                 isOnline
+                                                 isOnline,
+                                                  onJoinedRoom
                                              }) => {
     const [text, setText] = useState("");
     const endRef = useRef<HTMLDivElement | null >(null);
@@ -30,6 +32,13 @@ export const ChatWindow : React.FC<Props> = ({
         joinRoom,
         getDateLabel
     } = useChatMessages(conversation, currentUser);
+    
+    useEffect(() => {
+    if (joined && conversation.type === "1") {
+        onJoinedRoom(conversation.id);
+    }
+}, [joined]);
+
 
     useAutoScroll(endRef,messages.length);
     const hanldeSend = () =>{

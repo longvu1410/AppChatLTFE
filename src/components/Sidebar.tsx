@@ -15,6 +15,7 @@ interface Props {
     filterType:"all"|"1";
     setFilterType:React.Dispatch<React.SetStateAction<"all"|"1">>;
     onlineMap: Record<string,boolean>;
+     joinedRooms: Record<string, boolean>;
     searchText:string;
     setSearchText:(v:string) => void;
     onSearchUser:() => void;
@@ -30,6 +31,7 @@ export const Sidebar: React.FC<Props> = ({
                                              filterType,
                                              setFilterType,
                                              onlineMap,
+                                              joinedRooms,
                                              searchText,
                                              setSearchText,
                                              onSearchUser
@@ -79,101 +81,84 @@ export const Sidebar: React.FC<Props> = ({
             </div>
             </div>
 
-            <div className="flex gap-2 mb-4 items-center px-4">
-                <label className="input input-bordered flex items-center gap-2 flex-1 rounded-full h-10 bg-gray-50 focus-within:bg-base-100 focus-within:border-lime-500 transition-all">
-                    <Search className="w-4 h-4 text-gray-400"/>
-                    <input
-                        type="text"
-                        className="grow text-sm"
-                        placeholder="Tìm kiếm..."
-                        value={searchText}
-                        onChange={(e) => setSearchText(e.target.value)}
-                        onKeyDown={(e) =>{
-                            if(e.key === "Enter"){
-                                onSearchUser();
-                            }
-                        }}
-                    />
-                </label>
-                <button
-                    onClick={() => setShowCreateGroup(true)}
-                    className="btn btn-circle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
-                    title="Tạo nhóm mới"
-                >
-                    <UserPlus size={18}/>
-                </button>
-            </div>
-            <div className="px-4">
-            <div className="flex p-1 bg-gray-100 rounded-xl mb-4">
-                <button
-                    onClick={() => setFilterType("all")}
-                    className={`flex-1 py-1 text-xs font-bold rounded-lg transition${filterType === "all" ? "bg-white text-black shadow" : "text-gray-500"}`}
-                >Tất cả
-                </button>
-                <button
-                    onClick={() => setFilterType("1")}
-                    className={`flex-1 py-1 text-xs font-bold rounded-lg ${filterType === "1" ? "bg-white text-black shadow" : "text-gray-500"}`}
-                >Nhóm
-                </button>
-            </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-1 min-h-0 pb-2">
-                {conversations.map(c => (
-                    <div
-                        key={String(c.id)}
-                        onClick={() => onSelectConversation(c.id)}
-                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
-                            selectedId === c.id ? "bg-lime-50 border border-lime-200 shadow-sm" : "hover:bg-gray-50 border border-transparent"
-                        }`}
-                    >
-                        <div className="relative flex items-center gap-2">
-                            <div className="avatar placeholder relative">
-                                <div className="bg-lime-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
-                                    {c.type === "1" ? (
-                                        <img src="/room.png" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <div className="bg-lime-500 text-white flex items-center justify-center font-bold">
-                                            {c.name.charAt(0).toUpperCase()}
-                                        </div>
-                                    )}
-
-                                </div>
-
-                                {/* DOT ONLINE */}
-                                <span
-                                    className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white
-      ${onlineMap[c.id] ? "bg-green-500" : "bg-gray-400"}`}
-                                />
-                            </div>
-
-                            {/* TEXT ONLINE */}
-                            <span
-                                className={`text-[11px] font-semibold ${
-                                    onlineMap[c.id] ? "text-green-600" : "text-gray-400"
-                                }`}
-                            >
-    {onlineMap[c.id] ? "Online" : "Offline"}
-  </span>
-                        </div>
-
-
-
-                        <div className="flex-1 min-w-0">
-                            <div className="font-bold">{c.name}</div>
-                            <div className="text-xs text-gray-500">
-                                {typeof c.lastMessage ==="string"
-                                    ? c.lastMessage
-                                    : "Chưa có tin nhắn"}
-                            </div>
-                        </div>
-
-                        {c.unread > 0 && (
-                            <span className="badge badge-error">{c.unread}</span>
+           <div className="flex-1 overflow-y-auto space-y-1 min-h-0 pb-2">
+    {conversations.map(c => (
+        <div
+            key={String(c.id)}
+            onClick={() => onSelectConversation(c.id)}
+            className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                selectedId === c.id
+                    ? "bg-lime-50 border border-lime-200 shadow-sm"
+                    : "hover:bg-gray-50 border border-transparent"
+            }`}
+        >
+            {/* AVATAR + ONLINE */}
+            <div className="relative flex items-center gap-2">
+                <div className="avatar placeholder relative">
+                    <div className="bg-lime-500 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                        {c.type === "1" ? (
+                            <img src="/room.png" className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="font-bold">
+                                {c.name.charAt(0).toUpperCase()}
+                            </span>
                         )}
                     </div>
-                ))}
+
+                    {/* DOT ONLINE */}
+                    <span
+                        className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white
+                        ${
+                            c.type === "1"
+                                ? joinedRooms?.[c.id]
+                                    ? "bg-green-500"
+                                    : "bg-gray-400"
+                                : onlineMap[c.id]
+                                    ? "bg-green-500"
+                                    : "bg-gray-400"
+                        }`}
+                    />
+                </div>
+
+                {/* TEXT ONLINE */}
+                <span
+                    className={`text-[11px] font-semibold ${
+                        c.type === "1"
+                            ? joinedRooms?.[c.id]
+                                ? "text-green-600"
+                                : "text-gray-400"
+                            : onlineMap[c.id]
+                                ? "text-green-600"
+                                : "text-gray-400"
+                    }`}
+                >
+                    {c.type === "1"
+                        ? joinedRooms?.[c.id]
+                            ? "Online"
+                            : "Offline"
+                        : onlineMap[c.id]
+                            ? "Online"
+                            : "Offline"}
+                </span>
             </div>
+
+            {/* TEXT */}
+            <div className="flex-1 min-w-0">
+                <div className="font-bold">{c.name}</div>
+                <div className="text-xs text-gray-500">
+                    {typeof c.lastMessage === "string"
+                        ? c.lastMessage
+                        : "Chưa có tin nhắn"}
+                </div>
+            </div>
+
+            {/* UNREAD */}
+            {c.unread > 0 && (
+                <span className="badge badge-error">{c.unread}</span>
+            )}
+        </div>
+    ))}
+</div>
 
              {showCreateGroup && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
