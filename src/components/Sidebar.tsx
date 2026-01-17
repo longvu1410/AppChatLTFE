@@ -80,6 +80,33 @@ export const Sidebar: React.FC<Props> = ({
                 </button>
             </div>
             </div>
+            {/* SEARCH + CREATE GROUP */}
+<div className="flex gap-2 mb-4 items-center px-4">
+    <label className="input input-bordered flex items-center gap-2 flex-1 rounded-full h-10 bg-gray-50 focus-within:bg-base-100 focus-within:border-lime-500 transition-all">
+        <Search className="w-4 h-4 text-gray-400"/>
+        <input
+            type="text"
+            className="grow text-sm"
+            placeholder="Tìm kiếm..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                    onSearchUser();
+                }
+            }}
+        />
+    </label>
+
+    <button
+        onClick={() => setShowCreateGroup(true)}
+        className="btn btn-circle btn-sm bg-lime-500 hover:bg-lime-600 text-white border-none shadow-md"
+        title="Tạo nhóm mới"
+    >
+        <UserPlus size={18}/>
+    </button>
+</div>
+
 
            <div className="flex-1 overflow-y-auto space-y-1 min-h-0 pb-2">
     {conversations.map(c => (
@@ -161,7 +188,7 @@ export const Sidebar: React.FC<Props> = ({
 </div>
 
              {showCreateGroup && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/40">
                     <div className="bg-base-100 w-80 rounded-2xl p-5 shadow-xl">
                         <h2 className="text-lg font-bold mb-4 text-lime-600">
                             Tạo nhóm chat
